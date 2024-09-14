@@ -15,7 +15,7 @@ const JobTable = ({ jobs, isLoading }) => {
   if (isLoading) {
     return (
       <div className="job-table-container">
-        <div className={`loading-overlay ${isLoading ? 'visible' : ''}`}>
+        <div className="loading-overlay">
           <div className="loading-spinner"></div>
           <p className="loading-text">Söker jobb...</p>
         </div>
@@ -45,8 +45,9 @@ const JobTable = ({ jobs, isLoading }) => {
                 <td>{job.municipality}</td>
                 <td>{new Date(job.published_date).toLocaleDateString()}</td>
                 <td>{job.last_application_date ? new Date(job.last_application_date).toLocaleDateString() : 'N/A'}</td>
-                <td>
-                  <button onClick={() => openModal(job)}>Visa mer</button>
+                <td className="description-cell">
+                  <p>{job.description.slice(0, 100)}...</p>
+                  <button className="view-more-btn" onClick={() => openModal(job)}>Visa mer</button>
                 </td>
               </tr>
             ))}
