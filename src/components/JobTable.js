@@ -30,25 +30,28 @@ const JobTable = ({ jobs, isLoading }) => {
           <thead>
             <tr>
               <th>Titel</th>
+              <th>Beskrivning</th>
+
               <th>Företag</th>
               <th>Plats</th>
               <th>Publicerad</th>
               <th>Sista ansökningsdag</th>
-              <th>Beskrivning</th>
             </tr>
           </thead>
           <tbody>
             {jobs.map((job) => (
               <tr key={job.id}>
                 <td>{job.title}</td>
+                <td className="description-cell">
+                  <p>{job.description.slice(0, 50)}...</p>
+                  <button className="view-more-btn" onClick={() => openModal(job)}>
+                    Läs mer
+                  </button>
+                </td>
                 <td>{job.company_name}</td>
                 <td>{job.municipality}</td>
                 <td>{new Date(job.published_date).toLocaleDateString()}</td>
                 <td>{job.last_application_date ? new Date(job.last_application_date).toLocaleDateString() : 'N/A'}</td>
-                <td className="description-cell">
-                  <p>{job.description.slice(0, 100)}...</p>
-                  <button className="view-more-btn" onClick={() => openModal(job)}>Visa mer</button>
-                </td>
               </tr>
             ))}
           </tbody>
