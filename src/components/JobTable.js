@@ -3,6 +3,10 @@ import './JobTable.css';
 
 const JobTable = ({ jobs, isLoading }) => {
   const [selectedJob, setSelectedJob] = useState(null);
+  const [showCVPopout, setShowCVPopout] = useState(false);
+  const [cvStep, setCVStep] = useState(1);
+  const [currentWorkplace, setCurrentWorkplace] = useState('');
+  const [qualities, setQualities] = useState(['', '', '']);
 
   const openModal = (job) => {
     setSelectedJob(job);
@@ -13,8 +17,24 @@ const JobTable = ({ jobs, isLoading }) => {
   };
 
   const handleCreateCV = (job) => {
-    // Här kan du lägga till logik för att skapa CV
-    console.log('Skapa CV för jobb:', job.title);
+    setShowCVPopout(true);
+    setCVStep(1);
+    setCurrentWorkplace('');
+    setQualities(['', '', '']);
+  };
+
+  const handleNextStep = () => {
+    setCVStep(2);
+  };
+
+  const handleSaveCV = () => {
+    // Här kan du lägga till logik för att spara CV-informationen
+    console.log('Spara CV:', { currentWorkplace, qualities });
+    setShowCVPopout(false);
+  };
+
+  const handleCancelCV = () => {
+    setShowCVPopout(false);
   };
 
   if (isLoading) {
@@ -35,13 +55,11 @@ const JobTable = ({ jobs, isLoading }) => {
           <thead>
             <tr>
               <th>Titel</th>
-              <th>Beskrivning</th>
               <th>Företag</th>
               <th>Plats</th>
               <th>Publicerad</th>
               <th>Sista ansökningsdag</th>
-              <th>Typ av arbetsgivare</th>
-              <th>Kräver erfarenhet</th>
+              <th>Beskrivning</th>
               <th>Skapa CV</th>
             </tr>
           </thead>
@@ -49,16 +67,14 @@ const JobTable = ({ jobs, isLoading }) => {
             {jobs.map((job) => (
               <tr key={job.id}>
                 <td>{job.title}</td>
-                <td className="description-cell">
-                  <p>{job.description.slice(0, 50)}...</p>
-                  <button className="view-more-btn" onClick={() => openModal(job)}>Läs mer</button>
-                </td>
                 <td>{job.company_name}</td>
                 <td>{job.municipality}</td>
                 <td>{new Date(job.published_date).toLocaleDateString()}</td>
                 <td>{job.last_application_date ? new Date(job.last_application_date).toLocaleDateString() : 'N/A'}</td>
-                <td>{job.company_type === 'privat' ? 'Privat' : 'Offentlig'}</td>
-                <td>{job.requires_experience ? 'Ja' : 'Nej'}</td>
+                <td className="description-cell">
+                  <p>{job.description.slice(0, 50)}...</p>
+                  <button className="view-more-btn" onClick={() => openModal(job)}>Läs mer</button>
+                </td>
                 <td>
                   <button className="create-cv-btn" onClick={() => handleCreateCV(job)}>Skapa CV</button>
                 </td>
@@ -80,6 +96,42 @@ const JobTable = ({ jobs, isLoading }) => {
             <h4>Beskrivning:</h4>
             <p>{selectedJob.description}</p>
             <button onClick={closeModal}>Stäng</button>
+          </div>
+        </div>
+      )}
+      {showCVPopout && (
+        <div className="cv-popout-overlay" onClick={handleCancelCV}>
+          <div className="cv-popout-content" onClick={(e) => e.stopPropagation()}>
+            <h2>Skapa CV</h2>
+            {cvStep === 1 ? (
+              <>
+                <input
+                  type="text"
+                  placeholder="Nuvarande arbetsplats"
+                  value={currentWorkplace}
+                  onChange={(e) => setCurrentWorkplace(e.target.value)}
+                />
+                <button onClick={handleNextStep}>Nästa</button>
+              </>
+            ) : (
+              <>
+                {qualities.map((quality, index) => (
+                  <input
+                    key={index}
+                    type="text"
+                    placeholder={`Kvalitet ${index + 1}`}
+                    value={quality}
+                    onChange={(e) => {
+                      const newQualities = [...qualities];
+                      newQualities[index] = e.target.value;
+                      setQualities(newQualities);
+                    }}
+                  />
+                ))}
+                <button onClick={handleSaveCV}>Spara CV</button>
+              </>
+            )}
+            <button onClick={handleCancelCV}>Avbryt</button>
           </div>
         </div>
       )}
