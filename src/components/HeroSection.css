@@ -11,6 +11,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  animation: fadeIn 1s ease-out;
 }
 
 .background-layers {
@@ -71,14 +72,14 @@
   margin-bottom: 2rem;
   color: #333;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-  animation: fadeInUp 1s ease-out;
+  animation: slideInFromBottom 1s ease-out 0.5s both;
 }
 
 .search-container {
   display: flex;
   justify-content: center;
   margin-bottom: 2rem;
-  animation: fadeInUp 1s ease-out 0.3s both;
+  animation: slideInFromBottom 1s ease-out 1s both;
 }
 
 .search-input {
@@ -123,7 +124,7 @@
   border: 2px solid #555;
   border-radius: 50px;
   margin-top: 1rem;
-  animation: fadeInUp 1s ease-out 0.6s both;
+  animation: slideInFromBottom 1s ease-out 1.5s both;
 }
 
 .search-button:hover,
@@ -170,4 +171,30 @@
   .search-button {
     border-radius: 25px;
   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInFromBottom {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.hero-section {
+  animation: fadeIn 1s ease-out;
+}
+
+.hero-title {
+  animation: slideInFromBottom 1s ease-out 0.5s both;
+}
+
+.search-container {
+  animation: slideInFromBottom 1s ease-out 1s both;
+}
+
+.explore-button {
+  animation: slideInFromBottom 1s ease-out 1.5s both;
 }
