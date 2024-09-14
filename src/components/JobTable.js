@@ -40,6 +40,8 @@ const JobTable = ({ jobs, isLoading }) => {
               <th>Plats</th>
               <th>Publicerad</th>
               <th>Sista ansökningsdag</th>
+              <th>Typ av arbetsgivare</th>
+              <th>Kräver erfarenhet</th>
               <th>Skapa CV</th>
             </tr>
           </thead>
@@ -55,6 +57,8 @@ const JobTable = ({ jobs, isLoading }) => {
                 <td>{job.municipality}</td>
                 <td>{new Date(job.published_date).toLocaleDateString()}</td>
                 <td>{job.last_application_date ? new Date(job.last_application_date).toLocaleDateString() : 'N/A'}</td>
+                <td>{job.company_type === 'privat' ? 'Privat' : 'Offentlig'}</td>
+                <td>{job.requires_experience ? 'Ja' : 'Nej'}</td>
                 <td>
                   <button className="create-cv-btn" onClick={() => handleCreateCV(job)}>Skapa CV</button>
                 </td>
