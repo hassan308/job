@@ -15,7 +15,7 @@ const JobTable = ({ jobs, isLoading }) => {
   if (isLoading) {
     return (
       <div className="job-table-container">
-        <div className="loading-overlay">
+        <div className={`loading-overlay ${isLoading ? 'visible' : ''}`}>
           <div className="loading-spinner"></div>
           <p className="loading-text">Söker jobb...</p>
         </div>
