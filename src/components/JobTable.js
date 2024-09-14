@@ -12,6 +12,11 @@ const JobTable = ({ jobs, isLoading }) => {
     setSelectedJob(null);
   };
 
+  const handleCreateCV = (job) => {
+    // Här kan du lägga till logik för att skapa CV
+    console.log('Skapa CV för jobb:', job.title);
+  };
+
   if (isLoading) {
     return (
       <div className="job-table-container">
@@ -31,11 +36,11 @@ const JobTable = ({ jobs, isLoading }) => {
             <tr>
               <th>Titel</th>
               <th>Beskrivning</th>
-
               <th>Företag</th>
               <th>Plats</th>
               <th>Publicerad</th>
               <th>Sista ansökningsdag</th>
+              <th>Skapa CV</th>
             </tr>
           </thead>
           <tbody>
@@ -44,14 +49,15 @@ const JobTable = ({ jobs, isLoading }) => {
                 <td>{job.title}</td>
                 <td className="description-cell">
                   <p>{job.description.slice(0, 50)}...</p>
-                  <button className="view-more-btn" onClick={() => openModal(job)}>
-                    Läs mer
-                  </button>
+                  <button className="view-more-btn" onClick={() => openModal(job)}>Läs mer</button>
                 </td>
                 <td>{job.company_name}</td>
                 <td>{job.municipality}</td>
                 <td>{new Date(job.published_date).toLocaleDateString()}</td>
                 <td>{job.last_application_date ? new Date(job.last_application_date).toLocaleDateString() : 'N/A'}</td>
+                <td>
+                  <button className="create-cv-btn" onClick={() => handleCreateCV(job)}>Skapa CV</button>
+                </td>
               </tr>
             ))}
           </tbody>
