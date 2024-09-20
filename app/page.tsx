@@ -69,6 +69,7 @@ export default function JobSearch() {
     console.log("Sökning initierad med:", searchTerm);
     setIsInitialView(false);
     setLoading(true);
+    setFilteredJobs([]); // Rensa tidigare resultat
 
     try {
       // Anropa backend för att få filnamnet
@@ -176,20 +177,20 @@ export default function JobSearch() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex flex-col">
+      <header className="bg-white bg-opacity-90 shadow-sm sticky top-0 z-10 backdrop-filter backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">JobSearch</h1>
-          <div className="flex items-center space-x-4">
-            <Button onClick={() => setIsLoginOpen(true)} variant="outline">
+          <h1 className="text-2xl font-bold text-indigo-700">JobSearch</h1>
+          <nav className="flex items-center space-x-4">
+            <Button onClick={() => setIsLoginOpen(true)} variant="ghost" className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 transition-all duration-300">
               <LogIn className="h-4 w-4 mr-2" />
               Logga in
             </Button>
-            <Button onClick={() => setIsRegisterOpen(true)} variant="outline">
+            <Button onClick={() => setIsRegisterOpen(true)} variant="ghost" className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 transition-all duration-300">
               <UserPlus className="h-4 w-4 mr-2" />
               Registrera
             </Button>
-          </div>
+          </nav>
         </div>
       </header>
 
@@ -215,10 +216,15 @@ export default function JobSearch() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 pr-4 py-2 sm:py-3 w-full border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm text-base sm:text-lg"
+                    disabled={loading}
                   />
                 </div>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-8 py-2 sm:py-3 rounded-lg transition duration-300 ease-in-out text-base sm:text-lg font-semibold shadow-md hover:shadow-lg w-full sm:w-auto">
-                  Sök
+                <Button 
+                  type="submit" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-8 py-2 sm:py-3 rounded-lg transition duration-300 ease-in-out text-base sm:text-lg font-semibold shadow-md hover:shadow-lg w-full sm:w-auto"
+                  disabled={loading}
+                >
+                  {loading ? <div className="spinner"></div> : 'Sök'}
                 </Button>
               </div>
             </form>
@@ -286,7 +292,7 @@ export default function JobSearch() {
                           <Button 
                             onClick={() => toggleJobExpansion(job.id)} 
                             variant="outline" 
-                            className="text-blue-600 hover:bg-blue-50 border-blue-300 w-full sm:w-auto transition-all duration-300 text-sm sm:text-base"
+                            className="text-indigo-600 hover:bg-indigo-50 border-indigo-300 w-full sm:w-auto transition-all duration-300 text-sm sm:text-base rounded-full"
                           >
                             {expandedJob === job.id ? (
                               <>
@@ -300,19 +306,28 @@ export default function JobSearch() {
                               </>
                             )}
                           </Button>
-                          {expandedJob === job.id && (
-                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto mt-2 sm:mt-0">
-                              <Button onClick={handleCreateCV} className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base">
-                                <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
-                                Skapa CV
-                              </Button>
-                              <Button onClick={handleCreateCoverLetter} className="bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base">
-                                <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
-                                Skapa Personligt Brev
-                              </Button>
-                            </div>
-                          )}
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+                            <Button 
+                              onClick={handleCreateCV} 
+                              className="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white w-full sm:w-auto transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm rounded-full px-3 py-1 sm:px-4 sm:py-2"
+                            >
+                              <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                              Skapa CV
+                            </Button>
+                            <Button 
+                              onClick={handleCreateCoverLetter} 
+                              className="bg-gradient-to-r from-purple-400 to-purple-600 hover:from-purple-500 hover:to-purple-700 text-white w-full sm:w-auto transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm rounded-full px-3 py-1 sm:px-4 sm:py-2"
+                            >
+                              <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                              Skapa Personligt Brev
+                            </Button>
+                          </div>
                         </div>
+                        {expandedJob === job.id && (
+                          <div className="mt-4 bg-indigo-50 p-4 rounded-lg">
+                            {/* Lägg till mer detaljerad information om jobbet här om det behövs */}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
