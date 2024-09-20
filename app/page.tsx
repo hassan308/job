@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import Image from "next/image"
+import FilterButton from './components/FilterButton'
+import FilterMenu from './components/FilterMenu'
 
 type Job = {
   id: string;
@@ -42,6 +44,7 @@ const cvTemplates = [
 export default function JobSearch() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+  const [originalJobs, setOriginalJobs] = useState<Job[]>([]);
   const [expandedJob, setExpandedJob] = useState<string | null>(null)
   const [isCreateCVOpen, setIsCreateCVOpen] = useState(false)
   const [isCreateCoverLetterOpen, setIsCreateCoverLetterOpen] = useState(false)
@@ -63,6 +66,15 @@ export default function JobSearch() {
   const [loading, setLoading] = useState(false); // Laddningsstatus
   const [currentPage, setCurrentPage] = useState(1)
   const jobsPerPage = 10
+  const [showFilter, setShowFilter] = useState(false);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [filters, setFilters] = useState({
+    employmentType: [],
+    requiresExperience: false,
+    requiresLicense: false,
+    requiresCar: false,
+    municipalities: [],
+  });
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +109,9 @@ export default function JobSearch() {
       const jobs: Job[] = await jobsResponse.json();
 
       console.log("Hämtade jobb:", jobs);
+      setOriginalJobs(jobs); // Spara de ursprungliga jobben
       setFilteredJobs(jobs);
+      setShowFilter(true); // Visa filterknappen efter lyckad sökning
     } catch (error) {
       console.error('Ett fel inträffade:', error);
       // Visa ett felmeddelande för användaren
@@ -176,6 +190,37 @@ export default function JobSearch() {
     </div>
   )
 
+  const handleFilter = () => {
+    setShowFilterMenu(!showFilterMenu);
+  };
+
+  const handleFilterChange = (newFilters: typeof filters) => {
+    setFilters(newFilters);
+    applyFilters(newFilters);
+  };
+
+  const applyFilters = (currentFilters: typeof filters) => {
+    const filteredResults = originalJobs.filter(job => {
+      if (currentFilters.employmentType.length > 0 && !currentFilters.employmentType.includes(job.employment_type)) {
+        return false;
+      }
+      if (currentFilters.requiresExperience && !job.requires_experience) {
+        return false;
+      }
+      if (currentFilters.requiresLicense && !job.requires_license) {
+        return false;
+      }
+      if (currentFilters.requiresCar && !job.requires_car) {
+        return false;
+      }
+      if (currentFilters.municipalities.length > 0 && !currentFilters.municipalities.includes(job.municipality)) {
+        return false;
+      }
+      return true;
+    });
+    setFilteredJobs(filteredResults);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex flex-col">
       <header className="bg-white bg-opacity-90 shadow-sm sticky top-0 z-10 backdrop-filter backdrop-blur-lg">
@@ -246,6 +291,17 @@ export default function JobSearch() {
                   transition={{ duration: 0.5 }}
                   className="w-full max-w-4xl mx-auto space-y-8"
                 >
+                  {showFilter && (
+                    <div className="mb-4">
+                      <FilterButton onClick={handleFilter} />
+                      {showFilterMenu && (
+                        <FilterMenu
+                          filters={filters}
+                          onFilterChange={handleFilterChange}
+                        />
+                      )}
+                    </div>
+                  )}
                   {currentJobs.map((job: Job) => (
                     <Card key={job.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300 bg-white rounded-xl">
                       <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-6">
