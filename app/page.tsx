@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Briefcase, MapPin, Clock, ChevronDown, ChevronUp, FileText, LogIn, UserPlus } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Briefcase, MapPin, Clock, ChevronDown, ChevronUp, FileText, LogIn, UserPlus, ChevronLeft, ChevronRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 import { Button } from "@/components/ui/button"
@@ -13,40 +13,26 @@ import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import Image from "next/image"
 
-const jobs = [
-  { 
-    id: 1, 
-    title: 'Frontend Developer', 
-    company: 'Tech Co', 
-    location: 'Stockholm', 
-    type: 'Heltid',
-    description: 'Vi söker en passionerad Frontend Developer med erfarenhet av React och modern webbteknologi. Du kommer att arbeta i ett agilt team för att skapa användarvänliga och innovativa webbapplikationer.'
-  },
-  { 
-    id: 2, 
-    title: 'UX Designer', 
-    company: 'Design Studio', 
-    location: 'Göteborg', 
-    type: 'Deltid',
-    description: 'Design Studio söker en kreativ UX Designer för att hjälpa till att forma framtidens digitala upplevelser. Du kommer att arbeta nära med kunder och utvecklingsteam för att skapa intuitiva och engagerande användargränssnitt.'
-  },
-  { 
-    id: 3, 
-    title: 'Data Analyst', 
-    company: 'Data Corp', 
-    location: 'Malmö', 
-    type: 'Projektanställning',
-    description: 'Data Corp letar efter en skicklig Data Analyst för att hjälpa oss utvinna värdefulla insikter från komplexa datamängder. Du kommer att arbeta med avancerade analysverktyg och bidra till datadrivna beslut.'
-  },
-  { 
-    id: 4, 
-    title: 'Backend Engineer', 
-    company: 'Software Inc', 
-    location: 'Uppsala', 
-    type: 'Heltid',
-    description: 'Software Inc söker en erfaren Backend Engineer för att utveckla och underhålla vår molnbaserade plattform. Du kommer att arbeta med mikroservicearkitektur och vara en nyckelspelare i vårt tekniska team.'
-  },
-]
+type Job = {
+  id: string;
+  title: string;
+  description: string;
+  published_date: string;
+  last_application_date: string;
+  number_of_positions: number;
+  employment_type: string;
+  occupation: string;
+  company_name: string;
+  municipality: string;
+  country: string;
+  requires_experience: boolean;
+  requires_license: boolean;
+  requires_car: boolean;
+  application_email: string | null;
+  application_url: string | null;
+  company_type: string;
+  processed: boolean;
+};
 
 const cvTemplates = [
   { id: 'template1', name: 'Modern', image: '/cv-templates/2.png?height=600&width=200' },
@@ -55,8 +41,8 @@ const cvTemplates = [
 
 export default function JobSearch() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [filteredJobs, setFilteredJobs] = useState(jobs)
-  const [expandedJob, setExpandedJob] = useState<number | null>(null)
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+  const [expandedJob, setExpandedJob] = useState<string | null>(null)
   const [isCreateCVOpen, setIsCreateCVOpen] = useState(false)
   const [isCreateCoverLetterOpen, setIsCreateCoverLetterOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
@@ -74,19 +60,52 @@ export default function JobSearch() {
     closing: '',
   })
   const [isInitialView, setIsInitialView] = useState(true)
+  const [loading, setLoading] = useState(false); // Laddningsstatus
+  const [currentPage, setCurrentPage] = useState(1)
+  const jobsPerPage = 10
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsInitialView(false)
-    const filtered = jobs.filter(job => 
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.location.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    setFilteredJobs(filtered)
-  }
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Sökning initierad med:", searchTerm);
+    setIsInitialView(false);
+    setLoading(true);
 
-  const toggleJobExpansion = (jobId: number) => {
+    try {
+      // Anropa backend för att få filnamnet
+      const backendResponse = await fetch('http://127.0.0.1:5000/process_jobs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ table_name: searchTerm }),
+      });
+
+      if (!backendResponse.ok) {
+        throw new Error('Failed to fetch from backend');
+      }
+
+      const backendData = await backendResponse.json();
+      const jsonFilename = backendData.json_filename;
+      console.log("jsonFilename:", jsonFilename);
+
+      // Anropa vår lokala API route med filnamnet
+      const jobsResponse = await fetch(`/api/jobs?filename=${jsonFilename}`);
+      if (!jobsResponse.ok) {
+        throw new Error('Failed to fetch jobs');
+      }
+      const jobs: Job[] = await jobsResponse.json();
+
+      console.log("Hämtade jobb:", jobs);
+      setFilteredJobs(jobs);
+    } catch (error) {
+      console.error('Ett fel inträffade:', error);
+      // Visa ett felmeddelande för användaren
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleJobExpansion = (jobId: string) => {
     setExpandedJob(expandedJob === jobId ? null : jobId)
   }
 
@@ -113,6 +132,48 @@ export default function JobSearch() {
   const handleTemplateClick = (templateId: string) => {
     setCVData({...cvData, template: templateId})
   }
+
+  const indexOfLastJob = currentPage * jobsPerPage
+  const indexOfFirstJob = indexOfLastJob - jobsPerPage
+  const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob)
+  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage)
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber)
+
+  // Komponenten för sidnavigering
+  const Pagination = () => (
+    <div className="flex justify-center items-center mt-8 space-x-1 sm:space-x-2">
+      <Button
+        onClick={() => paginate(currentPage - 1)}
+        disabled={currentPage === 1}
+        variant="outline"
+        size="sm"
+        className="px-2 sm:px-3"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+      {Array.from({ length: totalPages }, (_, i) => (
+        <Button
+          key={i + 1}
+          onClick={() => paginate(i + 1)}
+          variant={currentPage === i + 1 ? "default" : "outline"}
+          size="sm"
+          className="px-2 sm:px-3"
+        >
+          {i + 1}
+        </Button>
+      )).slice(Math.max(0, currentPage - 2), Math.min(totalPages, currentPage + 1))}
+      <Button
+        onClick={() => paginate(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        variant="outline"
+        size="sm"
+        className="px-2 sm:px-3"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
@@ -145,7 +206,7 @@ export default function JobSearch() {
             </h1>
             
             <form onSubmit={handleSearch} className="mb-6">
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <div className="relative flex-grow">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <Input
@@ -153,84 +214,113 @@ export default function JobSearch() {
                     placeholder="Sök jobb, företag eller plats"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-3 w-full border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm text-lg"
+                    className="pl-10 pr-4 py-2 sm:py-3 w-full border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm text-base sm:text-lg"
                   />
                 </div>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition duration-300 ease-in-out text-lg font-semibold shadow-md hover:shadow-lg">
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-8 py-2 sm:py-3 rounded-lg transition duration-300 ease-in-out text-base sm:text-lg font-semibold shadow-md hover:shadow-lg w-full sm:w-auto">
                   Sök
                 </Button>
               </div>
             </form>
           </motion.div>
 
-          <AnimatePresence>
-            {!isInitialView && (
-              <motion.div 
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 50 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-4xl mx-auto space-y-8"
-              >
-                {filteredJobs.map(job => (
-                  <Card key={job.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300 bg-white rounded-xl">
-                    <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
-                      <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-900">{job.title}</CardTitle>
-                      <CardDescription className="text-lg sm:text-xl text-gray-700 mt-2">{job.company}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600 mb-4">
-                        <span className="flex items-center">
-                          <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
-                          {job.company}
-                        </span>
-                        <span className="flex items-center">
-                          <MapPin className="h-5 w-5 mr-2 text-green-500" />
-                          {job.location}
-                        </span>
-                        <span className="flex items-center">
-                          <Clock className="h-5 w-5 mr-2 text-purple-500" />
-                          {job.type}
-                        </span>
-                      </div>
-                      <p className="text-gray-700 mb-6 leading-relaxed">
-                        {expandedJob === job.id ? job.description : `${job.description.slice(0, 150)}...`}
-                      </p>
-                      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <Button 
-                          onClick={() => toggleJobExpansion(job.id)} 
-                          variant="outline" 
-                          className="text-blue-600 hover:bg-blue-50 border-blue-300 w-full sm:w-auto transition-all duration-300"
-                        >
-                          {expandedJob === job.id ? (
-                            <>
-                              <ChevronUp className="h-5 w-5 mr-2" />
-                              Visa mindre
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className="h-5 w-5 mr-2" />
-                              Läs mer
-                            </>
-                          )}
-                        </Button>
-                        <div className="flex flex-col sm:flex-row gap-4">
-                          <Button onClick={handleCreateCV} className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto transition-all duration-300 shadow-md hover:shadow-lg">
-                            <FileText className="h-5 w-5 mr-2" />
-                            Skapa CV
-                          </Button>
-                          <Button onClick={handleCreateCoverLetter} className="bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto transition-all duration-300 shadow-md hover:shadow-lg">
-                            <FileText className="h-5 w-5 mr-2" />
-                            Skapa Personligt Brev
-                          </Button>
+          {/* Laddningsindikator */}
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <div className="spinner"></div>
+              <span className="ml-2">Laddar, vänligen vänta...</span>
+            </div>
+          ) : (
+            <AnimatePresence>
+              {!isInitialView && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 50 }}
+                  transition={{ duration: 0.5 }}
+                  className="w-full max-w-4xl mx-auto space-y-8"
+                >
+                  {currentJobs.map((job: Job) => (
+                    <Card key={job.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300 bg-white rounded-xl">
+                      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-6">
+                        <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{job.title}</CardTitle>
+                        <CardDescription className="text-base sm:text-lg md:text-xl text-gray-700 mt-2">{job.company_name}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-4">
+                          <span className="flex items-center">
+                            <Briefcase className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-blue-500" />
+                            {job.company_name}
+                          </span>
+                          <span className="flex items-center">
+                            <MapPin className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-green-500" />
+                            {job.municipality}
+                          </span>
+                          <span className="flex items-center">
+                            <Clock className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-purple-500" />
+                            {job.employment_type}
+                          </span>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                        <p className="text-sm sm:text-base text-gray-700 mb-4 leading-relaxed">
+                          {expandedJob === job.id 
+                            ? job.description 
+                            : `${job.description.slice(0, 100)}...`}
+                        </p>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {job.requires_experience && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">👨‍💼 Erfarenhet krävs</span>}
+                          {job.requires_license && <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">🚗 Körkort krävs</span>}
+                          {job.requires_car && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">🚙 Bil krävs</span>}
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-4">
+                          <div>
+                            <span className="font-semibold">📅 Publicerad:</span> {new Date(job.published_date).toLocaleDateString('sv-SE')}
+                          </div>
+                          <div>
+                            <span className="font-semibold">🏢 Företagstyp:</span> {job.company_type}
+                          </div>
+                          <div className="col-span-1 sm:col-span-2">
+                            <span className="font-semibold">⏰ Sista ansökningsdag:</span> {new Date(job.last_application_date).toLocaleDateString('sv-SE')}
+                          </div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4">
+                          <Button 
+                            onClick={() => toggleJobExpansion(job.id)} 
+                            variant="outline" 
+                            className="text-blue-600 hover:bg-blue-50 border-blue-300 w-full sm:w-auto transition-all duration-300 text-sm sm:text-base"
+                          >
+                            {expandedJob === job.id ? (
+                              <>
+                                <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                                Visa mindre
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                                Läs mer
+                              </>
+                            )}
+                          </Button>
+                          {expandedJob === job.id && (
+                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto mt-2 sm:mt-0">
+                              <Button onClick={handleCreateCV} className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base">
+                                <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                                Skapa CV
+                              </Button>
+                              <Button onClick={handleCreateCoverLetter} className="bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base">
+                                <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                                Skapa Personligt Brev
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  <Pagination />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
         </div>
       </main>
 
