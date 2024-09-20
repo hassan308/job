@@ -11,26 +11,19 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Sök efter filen i olika möjliga mappar
-    const possiblePaths = [
-      path.join(process.cwd(), 'app', `${filename}.json`),
-      path.join(process.cwd(), 'public', `${filename}.json`),
-      path.join(process.cwd(), 'app', 'static', `${filename}.json`),
-    ];
+    // Definiera den externa sökvägen
+    const externalPath = 'C:\\Users\\hassoback\\PycharmProjects\\pythonProject\\';
+    
+    // Sök endast i den externa mappen
+    const filePath = path.join(externalPath, `${filename}.json`);
 
     let fileContents;
-    for (const filePath of possiblePaths) {
-      try {
-        fileContents = await fs.readFile(filePath, 'utf8');
-        console.log(`File found at: ${filePath}`);
-        break;
-      } catch (error) {
-        console.log(`File not found at: ${filePath}`);
-      }
-    }
-
-    if (!fileContents) {
-      throw new Error('File not found in any of the expected locations');
+    try {
+      fileContents = await fs.readFile(filePath, 'utf8');
+      console.log(`File found at: ${filePath}`);
+    } catch (error) {
+      console.log(`File not found at: ${filePath}`);
+      throw new Error('File not found in the specified location');
     }
 
     const jobs = JSON.parse(fileContents);
