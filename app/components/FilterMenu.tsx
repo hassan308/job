@@ -1,96 +1,140 @@
-import React from 'react';
-import { Button } from "@/components/ui/button"
+import { useState, useEffect, useCallback } from 'react'
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Job } from '../types'
+import { X } from 'lucide-react'
 
 interface FilterMenuProps {
-  filters: {
-    employmentType: string[];
-    requiresExperience: boolean;
-    requiresLicense: boolean;
-    requiresCar: boolean;
-    municipalities: string[];
-  };
-  onFilterChange: (newFilters: FilterMenuProps['filters']) => void;
+  jobs: Job[];
+  onFilterChange: (filters: FilterState) => void;
+  onClose: () => void;
 }
 
-const FilterMenu: React.FC<FilterMenuProps> = ({ filters, onFilterChange }) => {
-  const handleCheckboxChange = (category: keyof FilterMenuProps['filters'], value: string | boolean) => {
-    const newFilters = { ...filters };
-    if (typeof value === 'boolean') {
-      (newFilters[category] as boolean) = value;
-    } else {
-      const categoryArray = newFilters[category] as string[];
-      if (categoryArray.includes(value)) {
-        (newFilters[category] as string[]) = categoryArray.filter((item: string) => item !== value);
+interface FilterState {
+  employmentTypes: string[];
+  municipalities: string[];
+  requiresExperience: boolean;
+  requiresLicense: boolean;
+  requiresCar: boolean;
+}
+
+export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenuProps) {
+  const [filters, setFilters] = useState<FilterState>({
+    employmentTypes: [],
+    municipalities: [],
+    requiresExperience: false,
+    requiresLicense: false,
+    requiresCar: false,
+  });
+
+  const uniqueEmploymentTypes = Array.from(new Set(jobs.map(job => job.employment_type)));
+  const uniqueMunicipalities = Array.from(new Set(jobs.map(job => job.municipality)));
+
+  const handleCheckboxChange = useCallback((category: keyof FilterState, value: string | boolean) => {
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      if (typeof value === 'boolean') {
+        newFilters[category] = value as any;
       } else {
-        (newFilters[category] as string[]) = [...categoryArray, value];
+        if (Array.isArray(newFilters[category])) {
+          const array = newFilters[category] as string[];
+          if (array.includes(value)) {
+            newFilters[category] = array.filter(item => item !== value) as any;
+          } else {
+            newFilters[category] = [...array, value] as any;
+          }
+        }
       }
-    }
-    onFilterChange(newFilters);
-  };
+      return newFilters;
+    });
+  }, []);
+
+  useEffect(() => {
+    onFilterChange(filters);
+  }, [filters, onFilterChange]);
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-lg border border-indigo-100">
-      <h3 className="text-xl font-semibold mb-6 text-indigo-800">Filtrera resultat</h3>
+    <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold text-gray-800">Filtrera jobb</h2>
+        <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <X size={24} />
+        </button>
+      </div>
       
-      <div className="mb-6">
-        <h4 className="font-medium mb-3 text-indigo-700">Anställningstyp</h4>
-        {['Heltid', 'Deltid', 'Visstid', 'Tillsvidare'].map((type) => (
-          <div key={type} className="flex items-center mb-2">
-            <Checkbox
-              id={`employment-${type}`}
-              checked={filters.employmentType.includes(type)}
-              onCheckedChange={() => handleCheckboxChange('employmentType', type)}
-              className="text-indigo-600 focus:ring-indigo-500"
-            />
-            <Label htmlFor={`employment-${type}`} className="ml-2 text-gray-700">{type}</Label>
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Anställningstyp</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {uniqueEmploymentTypes.map(type => (
+              <div key={type} className="flex items-center">
+                <Checkbox
+                  id={`employment-${type}`}
+                  checked={filters.employmentTypes.includes(type)}
+                  onCheckedChange={() => handleCheckboxChange('employmentTypes', type)}
+                />
+                <Label htmlFor={`employment-${type}`} className="ml-2 text-sm text-gray-600">
+                  {type}
+                </Label>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
 
-      <div className="mb-6">
-        <h4 className="font-medium mb-3 text-indigo-700">Krav</h4>
-        {[ 
-          { id: 'requires-experience', label: 'Kräver erfarenhet', key: 'requiresExperience' },
-          { id: 'requires-license', label: 'Kräver körkort', key: 'requiresLicense' },
-          { id: 'requires-car', label: 'Kräver bil', key: 'requiresCar' }
-        ].map(({ id, label, key }) => (
-          <div key={id} className="flex items-center mb-2">
-            <Checkbox
-              id={id}
-              checked={filters[key as keyof typeof filters] as boolean}
-              onCheckedChange={(checked) => handleCheckboxChange(key as keyof typeof filters, checked as boolean)}
-              className="text-indigo-600 focus:ring-indigo-500"
-            />
-            <Label htmlFor={id} className="ml-2 text-gray-700">{label}</Label>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Kommun</h3>
+          <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+            {uniqueMunicipalities.map(municipality => (
+              <div key={municipality} className="flex items-center">
+                <Checkbox
+                  id={`municipality-${municipality}`}
+                  checked={filters.municipalities.includes(municipality)}
+                  onCheckedChange={() => handleCheckboxChange('municipalities', municipality)}
+                />
+                <Label htmlFor={`municipality-${municipality}`} className="ml-2 text-sm text-gray-600">
+                  {municipality}
+                </Label>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
 
-      <div className="mb-6">
-        <h4 className="font-medium mb-3 text-indigo-700">Kommun</h4>
-        {filters.municipalities.map((municipality) => (
-          <div key={municipality} className="flex items-center mb-2">
-            <Checkbox
-              id={`municipality-${municipality}`}
-              checked={filters.municipalities.includes(municipality)}
-              onCheckedChange={() => handleCheckboxChange('municipalities', municipality)}
-              className="text-indigo-600 focus:ring-indigo-500"
-            />
-            <Label htmlFor={`municipality-${municipality}`} className="ml-2 text-gray-700">{municipality}</Label>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Krav</h3>
+          <div className="space-y-2">
+            <div className="flex items-center">
+              <Checkbox
+                id="requires-experience"
+                checked={filters.requiresExperience}
+                onCheckedChange={(checked) => handleCheckboxChange('requiresExperience', checked as boolean)}
+              />
+              <Label htmlFor="requires-experience" className="ml-2 text-sm text-gray-600">
+                Kräver erfarenhet
+              </Label>
+            </div>
+            <div className="flex items-center">
+              <Checkbox
+                id="requires-license"
+                checked={filters.requiresLicense}
+                onCheckedChange={(checked) => handleCheckboxChange('requiresLicense', checked as boolean)}
+              />
+              <Label htmlFor="requires-license" className="ml-2 text-sm text-gray-600">
+                Kräver körkort
+              </Label>
+            </div>
+            <div className="flex items-center">
+              <Checkbox
+                id="requires-car"
+                checked={filters.requiresCar}
+                onCheckedChange={(checked) => handleCheckboxChange('requiresCar', checked as boolean)}
+              />
+              <Label htmlFor="requires-car" className="ml-2 text-sm text-gray-600">
+                Kräver bil
+              </Label>
+            </div>
           </div>
-        ))}
+        </div>
       </div>
-
-      <Button 
-        onClick={() => onFilterChange(filters)} 
-        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
-      >
-        Tillämpa filter
-      </Button>
     </div>
   );
-};
-
-export default FilterMenu;
+}
