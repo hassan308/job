@@ -1,14 +1,18 @@
 export interface Job {
   id: string;
   title: string;
-  company_name: string;
   description: string;
-  municipality: string;
-  employment_type: string;
+  company: {
+    name: string;
+  };
+  workplace: {
+    municipality: string | null;
+  };
   published_date: string;
   last_application_date: string;
-  requires_experience: boolean;
-  requires_license: boolean;
-  requires_car: boolean;
-  company_type: string;
+  employment_type: string;
+  working_hours_type: string;
+  own_car: boolean;
+  driving_license_required: boolean;
+  experience_required: boolean;
 }

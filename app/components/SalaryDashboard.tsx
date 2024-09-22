@@ -1,7 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar, LineChart, Line } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 // Mockad data baserad på sökordet
 const generateMockData = (keyword: string) => {
@@ -21,6 +23,23 @@ const generateMockData = (keyword: string) => {
       { name: 'Hälsovård', value: 20 },
       { name: 'Utbildning', value: 15 },
       { name: 'Övrigt', value: 10 },
+    ],
+    jobProgress: [
+      { name: 'Ansökningar', value: 75 },
+      { name: 'Intervjuer', value: 50 },
+      { name: 'Erbjudanden', value: 25 },
+    ],
+    marketDemand: [
+      { name: 'Nuvarande efterfrågan', value: 85 },
+      { name: 'Tillväxtprognos', value: 70 },
+      { name: 'Konkurrens', value: 60 },
+    ],
+    demandOverYears: [
+      { year: '2019', value: 65 },
+      { year: '2020', value: 70 },
+      { year: '2021', value: 78 },
+      { year: '2022', value: 85 },
+      { year: '2023', value: 90 },
     ],
   };
 };
@@ -59,9 +78,9 @@ const SalaryDashboard: React.FC<SalaryDashboardProps> = ({ keyword }) => {
         </CardContent>
       </Card>
       
-      <Card className="bg-gradient-to-br from-purple-50 to-pink-50 shadow-lg hover:shadow-xl transition-shadow duration-300">
+      <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-purple-800">Lön per erfarenhetsnivå</CardTitle>
+          <CardTitle className="text-2xl font-bold text-indigo-800">Lön per erfarenhetsnivå</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={200}>
@@ -83,9 +102,9 @@ const SalaryDashboard: React.FC<SalaryDashboardProps> = ({ keyword }) => {
         </CardContent>
       </Card>
       
-      <Card className="md:col-span-2 bg-gradient-to-br from-pink-50 to-orange-50 shadow-lg hover:shadow-xl transition-shadow duration-300">
+      <Card className="md:col-span-2 bg-gradient-to-br from-indigo-50 to-purple-50 shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-pink-800">Branschfördelning</CardTitle>
+          <CardTitle className="text-2xl font-bold text-indigo-800">Branschfördelning</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -114,6 +133,34 @@ const SalaryDashboard: React.FC<SalaryDashboardProps> = ({ keyword }) => {
                 wrapperStyle={{ paddingLeft: '20px' }}
               />
             </PieChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+      
+      <Card className="md:col-span-2 bg-gradient-to-br from-indigo-50 to-purple-50 shadow-lg hover:shadow-xl transition-shadow duration-300">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-indigo-800">Efterfrågan över tid</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data.demandOverYears}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#a78bfa" />
+              <XAxis dataKey="year" stroke="#7c3aed" />
+              <YAxis stroke="#7c3aed" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#f5f3ff', borderColor: '#8b5cf6' }}
+                labelStyle={{ color: '#6d28d9' }}
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="value" 
+                stroke="#6366f1" 
+                strokeWidth={2}
+                name="Efterfrågan"
+                dot={{ fill: '#6366f1', strokeWidth: 2 }}
+              />
+            </LineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>

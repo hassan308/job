@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Header from './components/Header'
 import SearchForm from './components/SearchForm'
@@ -9,11 +9,28 @@ import CVDialog from './components/CVDialog'
 import CoverLetterDialog from './components/CoverLetterDialog'
 import LoginDialog from './components/LoginDialog'
 import RegisterDialog from './components/RegisterDialog'
-import { Job } from './types'
+
+interface Job {
+  id: string;
+  title: string;
+  description: string;
+  company: {
+    name: string;
+  };
+  workplace: {
+    municipality: string | null;
+  };
+  published_date: string;
+  last_application_date: string;
+  employment_type: string;
+  working_hours_type: string;
+  own_car: boolean;
+  driving_license_required: boolean;
+  experience_required: boolean;
+}
 
 export default function JobSearch() {
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
-  const [originalJobs, setOriginalJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [isCreateCVOpen, setIsCreateCVOpen] = useState(false)
   const [isCreateCoverLetterOpen, setIsCreateCoverLetterOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
@@ -26,36 +43,25 @@ export default function JobSearch() {
     console.log("Sökning initierad med:", searchTerm);
     setIsInitialView(false);
     setLoading(true);
-    setFilteredJobs([]);
+    setJobs([]);
+    setSearchKeyword(searchTerm);
 
     try {
-      // Anropa backend för att få filnamnet
-      const backendResponse = await fetch('http://127.0.0.1:5000/process_jobs', {
+      const response = await fetch('https://3llgqvm1-5000.euw.devtunnels.ms/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ table_name: searchTerm }),
+        body: JSON.stringify({ search_term: searchTerm }),
       });
 
-      if (!backendResponse.ok) {
-        throw new Error('Failed to fetch from backend');
+      if (!response.ok) {
+        throw new Error('Något gick fel vid hämtning av jobb');
       }
 
-      const backendData = await backendResponse.json();
-      const jsonFilename = backendData.json_filename;
-      console.log("jsonFilename:", jsonFilename);
-
-      // Anropa vår lokala API route med filnamnet
-      const jobsResponse = await fetch(`/api/jobs?filename=${jsonFilename}`);
-      if (!jobsResponse.ok) {
-        throw new Error('Failed to fetch jobs');
-      }
-      const jobs: Job[] = await jobsResponse.json();
-
-      console.log("Hämtade jobb:", jobs);
-      setOriginalJobs(jobs);
-      setFilteredJobs(jobs);
+      const data: Job[] = await response.json();
+      console.log("Hämtade jobb:", data);
+      setJobs(data);
     } catch (error) {
       console.error('Ett fel inträffade:', error);
       // Visa ett felmeddelande för användaren
@@ -101,7 +107,7 @@ export default function JobSearch() {
                   transition={{ duration: 0.5 }}
                 >
                   <JobList 
-                    jobs={originalJobs} 
+                    jobs={jobs} 
                     onCreateCV={() => setIsCreateCVOpen(true)} 
                     onCreateCoverLetter={() => setIsCreateCoverLetterOpen(true)} 
                     searchKeyword={searchKeyword}

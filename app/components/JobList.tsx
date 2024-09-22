@@ -3,9 +3,9 @@ import JobCard from './JobCard'
 import Pagination from './Pagination'
 import FilterMenu from './FilterMenu'
 import SalaryDashboard from './SalaryDashboard'
-import { Job } from '../types'
 import { Button } from "@/components/ui/button"
 import { Filter } from 'lucide-react'
+import { Job } from '../types'
 
 interface JobListProps {
   jobs: Job[];
@@ -17,7 +17,7 @@ interface JobListProps {
 export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchKeyword }: JobListProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [showFilterMenu, setShowFilterMenu] = useState(false)
-  const [filteredJobs, setFilteredJobs] = useState(jobs)
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>(jobs)
 
   const jobsPerPage = 10
   const indexOfLastJob = currentPage * jobsPerPage
@@ -26,27 +26,29 @@ export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchK
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage)
 
   const handleFilterChange = useCallback((filters: any) => {
+    // Implementera filterlogik här
     const newFilteredJobs = jobs.filter(job => {
+      // Exempel på filterlogik, anpassa efter behov
       if (filters.employmentTypes.length > 0 && !filters.employmentTypes.includes(job.employment_type)) {
         return false;
       }
-      if (filters.municipalities.length > 0 && !filters.municipalities.includes(job.municipality)) {
+      if (filters.municipalities.length > 0 && !filters.municipalities.includes(job.workplace.municipality)) {
         return false;
       }
-      if (filters.requiresExperience && !job.requires_experience) {
+      if (filters.requiresExperience && !job.experience_required) {
         return false;
       }
-      if (filters.requiresLicense && !job.requires_license) {
+      if (filters.requiresLicense && !job.driving_license_required) {
         return false;
       }
-      if (filters.requiresCar && !job.requires_car) {
+      if (filters.requiresCar && !job.own_car) {
         return false;
       }
       return true;
     });
     setFilteredJobs(newFilteredJobs);
     setCurrentPage(1);
-  }, [jobs]);
+  }, [jobs])
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8">
