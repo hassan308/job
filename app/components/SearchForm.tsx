@@ -13,7 +13,13 @@ export default function SearchForm({ onSearch, loading }: SearchFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSearch(searchTerm)
+    if (searchTerm.trim()) {
+      onSearch(searchTerm)
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
   }
 
   return (
@@ -25,7 +31,7 @@ export default function SearchForm({ onSearch, loading }: SearchFormProps) {
             type="text"
             placeholder="Sök jobb, företag eller plats"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleInputChange}
             className="pl-10 pr-4 py-2 sm:py-3 w-full border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm text-base sm:text-lg"
             disabled={loading}
           />
