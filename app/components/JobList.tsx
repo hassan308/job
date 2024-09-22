@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import JobCard from './JobCard'
 import Pagination from './Pagination'
 import FilterMenu from './FilterMenu'
+import SalaryDashboard from './SalaryDashboard'
 import { Job } from '../types'
 import { Button } from "@/components/ui/button"
 import { Filter } from 'lucide-react'
@@ -10,9 +11,10 @@ interface JobListProps {
   jobs: Job[];
   onCreateCV: () => void;
   onCreateCoverLetter: () => void;
+  searchKeyword: string;
 }
 
-export default function JobList({ jobs, onCreateCV, onCreateCoverLetter }: JobListProps) {
+export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchKeyword }: JobListProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [showFilterMenu, setShowFilterMenu] = useState(false)
   const [filteredJobs, setFilteredJobs] = useState(jobs)
@@ -48,6 +50,7 @@ export default function JobList({ jobs, onCreateCV, onCreateCoverLetter }: JobLi
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8">
+      <SalaryDashboard keyword={searchKeyword} />
       <div className="flex justify-end mb-4">
         <Button 
           onClick={() => setShowFilterMenu(!showFilterMenu)}

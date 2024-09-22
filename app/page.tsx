@@ -20,6 +20,7 @@ export default function JobSearch() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
   const [isInitialView, setIsInitialView] = useState(true)
   const [loading, setLoading] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState('');
 
   const handleSearch = async (searchTerm: string) => {
     console.log("Sökning initierad med:", searchTerm);
@@ -103,6 +104,7 @@ export default function JobSearch() {
                     jobs={originalJobs} 
                     onCreateCV={() => setIsCreateCVOpen(true)} 
                     onCreateCoverLetter={() => setIsCreateCoverLetterOpen(true)} 
+                    searchKeyword={searchKeyword}
                   />
                 </motion.div>
               )}
