@@ -27,8 +27,9 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
     requiresCar: false,
   });
 
-  const uniqueEmploymentTypes = Array.from(new Set(jobs.map(job => job.employment_type)));
-  const uniqueMunicipalities = Array.from(new Set(jobs.map(job => job.municipality)));
+  // Uppdatera dessa rader för att korrekt extrahera unika värden
+  const uniqueEmploymentTypes = Array.from(new Set(jobs.map(job => job.employmentType)));
+  const uniqueMunicipalities = Array.from(new Set(jobs.map(job => job.workplace?.municipality).filter(Boolean)));
 
   const handleCheckboxChange = useCallback((category: keyof FilterState, value: string | boolean) => {
     setFilters(prev => {

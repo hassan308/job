@@ -27,13 +27,11 @@ export default function JobList({ jobs, searchKeyword }: JobListProps) {
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage)
 
   const handleFilterChange = useCallback((filters: any) => {
-    // Implementera filterlogik här
     const newFilteredJobs = jobs.filter(job => {
-      // Exempel på filterlogik, anpassa efter behov
-      if (filters.employmentTypes.length > 0 && !filters.employmentTypes.includes(job.employment_type)) {
+      if (filters.employmentTypes.length > 0 && !filters.employmentTypes.includes(job.employmentType)) {
         return false;
       }
-      if (filters.municipalities.length > 0 && !filters.municipalities.includes(job.workplace.municipality)) {
+      if (filters.municipalities.length > 0 && !filters.municipalities.includes(job.workplace?.municipality)) {
         return false;
       }
       if (filters.requiresExperience && !job.experience_required) {

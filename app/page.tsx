@@ -70,11 +70,18 @@ export default function JobSearch() {
     }
   };
 
+  const resetToInitialView = () => {
+    setIsInitialView(true)
+    setJobs([])
+    setSearchKeyword('')
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex flex-col">
       <Header 
         onLoginClick={() => setIsLoginOpen(true)} 
         onRegisterClick={() => setIsRegisterOpen(true)} 
+        onLogoClick={resetToInitialView}
       />
 
       <main className="flex-grow flex flex-col items-center justify-center p-4 sm:p-8">
