@@ -26,6 +26,7 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle }: 
     traits: "",
     company: "",
     template: 'template1',
+    other: "", // Lägg till detta nya fält
   })
   const [isLoading, setIsLoading] = useState(false)
   const [cvUrl, setCvUrl] = useState<string | null>(null)
@@ -42,7 +43,8 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle }: 
       years_of_experience: parseInt(cvData.years_of_experience) || 0,
       traits: cvData.traits,
       company: cvData.company,
-      name: cvData.name
+      name: cvData.name,
+      other: cvData.other // Lägg till detta nya fält
     }
 
     try {
@@ -135,6 +137,17 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle }: 
               onChange={(e) => setCVData({...cvData, traits: e.target.value})}
               className="mt-1 bg-white bg-opacity-70 border-indigo-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
               placeholder="Dina främsta egenskaper (kommaseparerade)"
+              rows={3}
+            />
+          </div>
+          <div>
+            <Label htmlFor="other" className="text-indigo-700 font-semibold">Övrig information</Label>
+            <Textarea
+              id="other"
+              value={cvData.other}
+              onChange={(e) => setCVData({...cvData, other: e.target.value})}
+              className="mt-1 bg-white bg-opacity-70 border-indigo-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+              placeholder="Annan relevant information du vill inkludera"
               rows={3}
             />
           </div>
