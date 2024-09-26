@@ -6,7 +6,7 @@ import { Job } from '../types'
 
 interface JobCardProps {
   job: Job;
-  onCreateCV: () => void;
+  onCreateCV: (jobDescription: string, jobTitle: string) => void;
   onCreateCoverLetter: () => void;
 }
 
@@ -192,7 +192,7 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter }: JobCar
             )}
           </Button>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
-            <Button onClick={onCreateCV} className="bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 text-green-700 w-full sm:w-auto transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm rounded-full px-3 py-1 sm:px-4 sm:py-2">
+            <Button onClick={() => onCreateCV(job.description, job.title)} className="bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 text-green-700 w-full sm:w-auto transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm rounded-full px-3 py-1 sm:px-4 sm:py-2">
               <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               Skapa CV
             </Button>

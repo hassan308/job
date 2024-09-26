@@ -6,18 +6,19 @@ import SalaryDashboard from './SalaryDashboard'
 import { Button } from "@/components/ui/button"
 import { Filter } from 'lucide-react'
 import { Job } from '../types'
+import CVDialog from './CVDialog'
 
 interface JobListProps {
   jobs: Job[];
-  onCreateCV: () => void;
-  onCreateCoverLetter: () => void;
   searchKeyword: string;
 }
 
-export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchKeyword }: JobListProps) {
+export default function JobList({ jobs, searchKeyword }: JobListProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [showFilterMenu, setShowFilterMenu] = useState(false)
   const [filteredJobs, setFilteredJobs] = useState<Job[]>(jobs)
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null)
+  const [isCVDialogOpen, setIsCVDialogOpen] = useState(false)
 
   const jobsPerPage = 10
   const indexOfLastJob = currentPage * jobsPerPage
@@ -50,6 +51,15 @@ export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchK
     setCurrentPage(1);
   }, [jobs])
 
+  const handleCreateCV = (jobDescription: string, jobTitle: string) => {
+    setSelectedJob({ description: jobDescription, title: jobTitle } as Job)
+    setIsCVDialogOpen(true)
+  }
+
+  const handleCreateCoverLetter = () => {
+    // Implementera logik för att skapa personligt brev här
+  }
+
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8">
       <SalaryDashboard keyword={searchKeyword} />
@@ -73,8 +83,8 @@ export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchK
         <JobCard 
           key={job.id} 
           job={job} 
-          onCreateCV={onCreateCV} 
-          onCreateCoverLetter={onCreateCoverLetter} 
+          onCreateCV={handleCreateCV}
+          onCreateCoverLetter={handleCreateCoverLetter}
         />
       ))}
       <Pagination 
@@ -82,6 +92,14 @@ export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchK
         totalPages={totalPages} 
         onPageChange={setCurrentPage} 
       />
+      {selectedJob && (
+        <CVDialog 
+          isOpen={isCVDialogOpen}
+          onClose={() => setIsCVDialogOpen(false)}
+          jobDescription={selectedJob.description}
+          jobTitle={selectedJob.title}
+        />
+      )}
     </div>
   )
 }
