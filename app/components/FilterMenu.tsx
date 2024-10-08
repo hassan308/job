@@ -1,8 +1,20 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { Job } from '../types'
-import { X } from 'lucide-react'
+import React, { useState, useEffect, useCallback } from 'react';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Job } from '../types';
+import { X } from 'lucide-react';
+import { TextField, Button, Box, Autocomplete } from '@mui/material';
+
+// Lägg till denna array med populära sökförslag
+const popularSearches = [
+  'Systemutvecklare',
+  'Frontend-utvecklare',
+  'Backend-utvecklare',
+  'Fullstack-utvecklare',
+  'DevOps-ingenjör',
+  'Data Scientist',
+  'UX-designer',
+];
 
 interface FilterMenuProps {
   jobs: Job[];
@@ -54,14 +66,24 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
   }, [filters, onFilterChange]);
 
   return (
-    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg shadow-xl p-6 w-full max-w-md mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-indigo-800">Filtrera jobb</h2>
-        <button onClick={onClose} className="text-indigo-600 hover:text-indigo-800 transition-colors duration-200">
-          <X size={24} />
-        </button>
-      </div>
-      
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 2 }}>
+      <Autocomplete
+        freeSolo
+        options={popularSearches}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Sök jobb"
+            variant="outlined"
+            fullWidth
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        )}
+        onInputChange={(event, newInputValue) => {
+          setSearchTerm(newInputValue);
+        }}
+        value={searchTerm}
+      />
       <div className="space-y-8">
         <div>
           <h3 className="text-lg font-semibold text-indigo-700 mb-3">Anställningstyp</h3>
@@ -140,6 +162,14 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
           </div>
         </div>
       </div>
-    </div>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+        <Button variant="contained" color="primary" onClick={handleSearch}>
+          Sök
+        </Button>
+        <Button variant="outlined" onClick={handleReset}>
+          Återställ filter
+        </Button>
+      </Box>
+    </Box>
   );
 }
