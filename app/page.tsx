@@ -1,7 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from './firebase/firebaseConfig';
+import { signOut } from 'firebase/auth';
 import Header from './components/Header'
 import SearchForm from './components/SearchForm'
 import JobList from './components/JobList'
@@ -9,6 +12,7 @@ import CVDialog from './components/CVDialog'
 import CoverLetterDialog from './components/CoverLetterDialog'
 import LoginDialog from './components/LoginDialog'
 import RegisterDialog from './components/RegisterDialog'
+import ProfileDialog from './components/ProfileDialog'
 
 interface Job {
   id: string;
@@ -30,19 +34,21 @@ interface Job {
 }
 
 export default function JobSearch() {
+  const [user, loading, error] = useAuthState(auth);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isCreateCVOpen, setIsCreateCVOpen] = useState(false)
   const [isCreateCoverLetterOpen, setIsCreateCoverLetterOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
   const [isInitialView, setIsInitialView] = useState(true)
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleSearch = async (searchTerm: string) => {
     console.log("Sökning initierad med:", searchTerm);
     setIsInitialView(false);
-    setLoading(true);
+    setIsLoading(true);
     setJobs([]);
     setSearchKeyword(searchTerm);
 
@@ -60,13 +66,13 @@ export default function JobSearch() {
       }
 
       const data: Job[] = await response.json();
-      console.log("Hämtade jobb:", data);
+      console.log("Hämtade jobb:", data); // Ny console.log
       setJobs(data);
     } catch (error) {
       console.error('Ett fel inträffade:', error);
       // Visa ett felmeddelande för användaren
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -76,12 +82,21 @@ export default function JobSearch() {
     setSearchKeyword('')
   }
 
+  const handleLogout = () => {
+    signOut(auth).catch((error) => {
+      console.error('Logout error:', error);
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex flex-col">
       <Header 
         onLoginClick={() => setIsLoginOpen(true)} 
         onRegisterClick={() => setIsRegisterOpen(true)} 
         onLogoClick={resetToInitialView}
+        onLogout={handleLogout}
+        onProfileClick={() => setIsProfileOpen(true)}
+        user={user}
       />
 
       <main className="flex-grow flex flex-col items-center justify-center p-4 sm:p-8">
@@ -96,10 +111,10 @@ export default function JobSearch() {
               Hitta ditt <span className="text-blue-600">drömjobb</span>
             </h1>
             
-            <SearchForm onSearch={handleSearch} loading={loading} />
+            <SearchForm onSearch={handleSearch} loading={isLoading} />
           </motion.div>
 
-          {loading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center">
               <div className="spinner"></div>
               <span className="ml-2">Laddar, vänligen vänta...</span>
@@ -152,6 +167,11 @@ export default function JobSearch() {
       <RegisterDialog 
         isOpen={isRegisterOpen} 
         onClose={() => setIsRegisterOpen(false)} 
+      />
+
+      <ProfileDialog 
+        isOpen={isProfileOpen} 
+        onClose={() => setIsProfileOpen(false)} 
       />
     </div>
   )

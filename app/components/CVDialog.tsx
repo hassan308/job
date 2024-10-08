@@ -1,11 +1,13 @@
-import { useState, useCallback, useRef } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { useState, useEffect } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
-import { toast } from 'react-hot-toast'
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { auth, db } from '../firebase/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
+import { Loader2, Lock, ExternalLink } from 'lucide-react';
+import Image from 'next/image'
 
 interface CVDialogProps {
   isOpen: boolean;
@@ -14,190 +16,261 @@ interface CVDialogProps {
   jobTitle: string;
 }
 
+interface UserData {
+  displayName: string;
+  email: string;
+  phone: string;
+  location: string;
+  bio: string;
+  skills: string;
+  experience: string;
+  education: string;
+  certifications: string;
+  lastUpdated: number;
+}
+
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
 const cvTemplates = [
-  { id: 'template1', name: 'Modern', image: '/cv-templates/2.png' },
-  { id: 'template2', name: 'Klassisk', image: '/cv-templates/1.png' },
-]
+  { id: 'template1', name: 'Klassisk', image: '/cv-templates/2.png', free: true },
+  { id: 'template2', name: 'Modern', image: '/cv-templates/1.png', free: false },
+  { id: 'template3', name: 'Kreativ', image: '/cv-templates/3.png', free: false },
+  { id: 'template4', name: 'Professionell', image: '/cv-templates/4.png', free: false },
+];
 
 export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle }: CVDialogProps) {
-  const [cvData, setCVData] = useState({
-    name: "",
-    years_of_experience: "",
-    traits: "",
-    company: "",
-    template: 'template1',
-    other: "", // Lägg till detta nya fält
-  })
-  const [isLoading, setIsLoading] = useState(false)
-  const [cvUrl, setCvUrl] = useState<string | null>(null)
-  const dialogRef = useRef<HTMLDivElement>(null)
+  const [userData, setUserData] = useState<UserData>({
+    displayName: '',
+    email: '',
+    phone: '',
+    location: '',
+    bio: '',
+    skills: '',
+    experience: '',
+    education: '',
+    certifications: '',
+    lastUpdated: 0,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(cvTemplates[0].id);
+  const [generatedCVUrl, setGeneratedCVUrl] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768); // Anta att enheter med bredd 768px eller mindre är mobila
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (auth.currentUser) {
+        const cachedData = localStorage.getItem('userData');
+        const now = Date.now();
+
+        if (cachedData) {
+          const parsedData: UserData = JSON.parse(cachedData);
+          if (now - parsedData.lastUpdated < CACHE_DURATION) {
+            setUserData(parsedData);
+            return;
+          }
+        }
+
+        const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+        if (userDoc.exists()) {
+          const firebaseData = userDoc.data() as Omit<UserData, 'lastUpdated'>;
+          const newUserData = {
+            ...firebaseData,
+            displayName: auth.currentUser.displayName || '',
+            email: auth.currentUser.email || '',
+            lastUpdated: now,
+          };
+          setUserData(newUserData);
+          localStorage.setItem('userData', JSON.stringify(newUserData));
+        }
+      }
+    };
+
+    if (isOpen) {
+      fetchUserData();
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    console.log("Försöker generera CV...")
-    
-    const dataToSend = {
-      Jobbtitel: jobTitle,
-      description: jobDescription,
-      years_of_experience: parseInt(cvData.years_of_experience) || 0,
-      traits: cvData.traits,
-      company: cvData.company,
-      name: cvData.name,
-      other: cvData.other // Lägg till detta nya fält
-    }
+    e.preventDefault();
+    setIsLoading(true);
+    setGeneratedCVUrl(null);
 
+    const cvData = {
+      ...userData,
+      Jobbtitel: jobTitle,
+      jobDescription: jobDescription,
+      template: selectedTemplate,
+    };
+    
     try {
-      console.log("Skickar data:", dataToSend)
       const response = await fetch('https://3llgqvm1-5001.euw.devtunnels.ms/generate_cv', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(dataToSend),
-      })
+        body: JSON.stringify(cvData),
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error('Något gick fel vid skapande av CV');
       }
 
-      const result = await response.json()
+      const result = await response.json();
       
-      if (result.url) {
-        setCvUrl(result.url)
-      } else if (result.html) {
-        const blob = new Blob([result.html], { type: 'text/html' })
-        const url = URL.createObjectURL(blob)
-        setCvUrl(url)
+      if (!isMobile) {
+        // För desktop, öppna CV:t i en ny flik
+        const newWindow = window.open();
+        if (newWindow) {
+          newWindow.document.write(result.html);
+          newWindow.document.close();
+        } else {
+          console.error('Kunde inte öppna ny flik. Kontrollera att popup-blockerare är avstängda.');
+        }
+        onClose();
       } else {
-        throw new Error('Inget giltigt CV-innehåll returnerades från servern')
+        // För mobil, spara URL:en för senare användning
+        setGeneratedCVUrl(URL.createObjectURL(new Blob([result.html], {type: 'text/html'})));
       }
 
-      toast.success('CV genererat framgångsrikt!')
     } catch (error) {
-      console.error('Fel vid CV-generering:', error)
-      toast.error('Något gick fel vid generering av CV. Försök igen.')
+      console.error('Fel vid skapande av CV:', error);
+      // Här kan du lägga till felhantering, t.ex. visa ett felmeddelande för användaren
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const handleTemplateClick = useCallback((templateId: string) => {
-    setCVData(prev => ({...prev, template: templateId}))
-  }, [])
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setUserData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const openGeneratedCV = () => {
+    if (generatedCVUrl) {
+      window.open(generatedCVUrl, '_blank');
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-[95vw] sm:max-w-[600px] md:max-w-[700px] h-[90vh] overflow-y-auto bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl shadow-2xl p-4 sm:p-6" ref={dialogRef}>
+      <DialogContent className="sm:max-w-[700px] bg-white rounded-xl shadow-lg overflow-y-auto max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="text-2xl sm:text-3xl font-bold text-indigo-800 mb-2">Skapa ditt CV</DialogTitle>
-          <DialogDescription className="text-base sm:text-lg text-indigo-600">
-            Fyll i informationen nedan och välj en mall för ditt CV. Jobbeskrivningen och jobbtiteln kommer att användas automatiskt.
+          <DialogTitle className="text-3xl font-bold text-blue-700">Skapa CV för {jobTitle}</DialogTitle>
+          <DialogDescription className="text-lg text-blue-500 mt-2">
+            Verifiera din information och välj en mall för ditt CV.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+          <div className="space-y-4">
             <div>
-              <Label htmlFor="name" className="text-indigo-700 font-semibold">Ditt namn</Label>
-              <Input
-                id="name"
-                value={cvData.name}
-                onChange={(e) => setCVData({...cvData, name: e.target.value})}
-                className="mt-1 bg-white bg-opacity-70 border-indigo-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                placeholder="Ditt fullständiga namn"
-              />
+              <Label htmlFor="displayName">Namn</Label>
+              <Input id="displayName" name="displayName" value={userData.displayName} onChange={handleInputChange} />
             </div>
             <div>
-              <Label htmlFor="years_of_experience" className="text-indigo-700 font-semibold">Års erfarenhet</Label>
-              <Input
-                id="years_of_experience"
-                type="number"
-                value={cvData.years_of_experience}
-                onChange={(e) => setCVData({...cvData, years_of_experience: e.target.value})}
-                className="mt-1 bg-white bg-opacity-70 border-indigo-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                placeholder="Antal års erfarenhet"
-              />
+              <Label htmlFor="email">E-post</Label>
+              <Input id="email" name="email" value={userData.email} onChange={handleInputChange} readOnly />
+            </div>
+            <div>
+              <Label htmlFor="phone">Telefon</Label>
+              <Input id="phone" name="phone" value={userData.phone} onChange={handleInputChange} />
+            </div>
+            <div>
+              <Label htmlFor="location">Plats</Label>
+              <Input id="location" name="location" value={userData.location} onChange={handleInputChange} />
+            </div>
+            <div>
+              <Label htmlFor="bio">Sammanfattning</Label>
+              <Textarea id="bio" name="bio" value={userData.bio} onChange={handleInputChange} rows={3} />
+            </div>
+            <div>
+              <Label htmlFor="skills">Färdigheter</Label>
+              <Textarea id="skills" name="skills" value={userData.skills} onChange={handleInputChange} rows={3} />
+            </div>
+            <div>
+              <Label htmlFor="experience">Arbetslivserfarenhet</Label>
+              <Textarea id="experience" name="experience" value={userData.experience} onChange={handleInputChange} rows={4} />
+            </div>
+            <div>
+              <Label htmlFor="education">Utbildning</Label>
+              <Textarea id="education" name="education" value={userData.education} onChange={handleInputChange} rows={3} />
+            </div>
+            <div>
+              <Label htmlFor="certifications">Certifieringar</Label>
+              <Textarea id="certifications" name="certifications" value={userData.certifications} onChange={handleInputChange} rows={3} />
             </div>
           </div>
-          <div>
-            <Label htmlFor="company" className="text-indigo-700 font-semibold">Nuvarande företag</Label>
-            <Input
-              id="company"
-              value={cvData.company}
-              onChange={(e) => setCVData({...cvData, company: e.target.value})}
-              className="mt-1 bg-white bg-opacity-70 border-indigo-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              placeholder="Företag du jobbar på"
-            />
-          </div>
-          <div>
-            <Label htmlFor="traits" className="text-indigo-700 font-semibold">Egenskaper</Label>
-            <Textarea
-              id="traits"
-              value={cvData.traits}
-              onChange={(e) => setCVData({...cvData, traits: e.target.value})}
-              className="mt-1 bg-white bg-opacity-70 border-indigo-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              placeholder="Dina främsta egenskaper (kommaseparerade)"
-              rows={3}
-            />
-          </div>
-          <div>
-            <Label htmlFor="other" className="text-indigo-700 font-semibold">Övrig information</Label>
-            <Textarea
-              id="other"
-              value={cvData.other}
-              onChange={(e) => setCVData({...cvData, other: e.target.value})}
-              className="mt-1 bg-white bg-opacity-70 border-indigo-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              placeholder="Annan relevant information du vill inkludera"
-              rows={3}
-            />
-          </div>
-          <div>
-            <Label className="text-indigo-700 font-semibold mb-2 block">CV Mall</Label>
-            <div className="grid grid-cols-2 gap-4">
+          
+          <div className="space-y-4">
+            <Label className="text-lg font-semibold">Välj CV Mall</Label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {cvTemplates.map((template) => (
                 <div 
-                  key={template.id} 
-                  className={`flex flex-col items-center cursor-pointer transition-all duration-300 transform hover:scale-105 ${
-                    cvData.template === template.id ? 'ring-4 ring-indigo-500 rounded-xl shadow-lg' : 'hover:shadow-md'
-                  }`}
-                  onClick={() => handleTemplateClick(template.id)}
+                  key={template.id}
+                  className={`relative cursor-pointer transition-all duration-300 transform hover:scale-105 ${
+                    selectedTemplate === template.id ? 'ring-4 ring-blue-500 rounded-lg shadow-lg' : 'hover:shadow-md'
+                  } ${!template.free ? 'opacity-50' : ''}`}
+                  onClick={() => template.free && setSelectedTemplate(template.id)}
                 >
                   <div className="relative w-full aspect-[3/4] overflow-hidden rounded-lg">
                     <Image
                       src={template.image}
                       alt={template.name}
                       layout="fill"
-                      objectFit="contain"
+                      objectFit="cover"
                       className="transition-transform duration-300 transform hover:scale-110"
                     />
+                    {!template.free && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <Lock className="text-white w-8 h-8" />
+                      </div>
+                    )}
                   </div>
-                  <span className="mt-2 text-sm font-medium text-indigo-700 bg-white bg-opacity-70 px-3 py-1 rounded-full">
-                    {template.name}
-                  </span>
+                  <p className="mt-2 text-center font-medium text-blue-600">{template.name}</p>
+                  {!template.free && (
+                    <span className="absolute top-2 right-2 bg-yellow-400 text-xs font-bold px-2 py-1 rounded-full">PRO</span>
+                  )}
                 </div>
               ))}
             </div>
           </div>
-          <DialogFooter className="flex flex-col sm:flex-row justify-between items-center">
+          
+          {!generatedCVUrl ? (
             <Button 
               type="submit" 
-              className="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white transition duration-300 ease-in-out px-6 py-2 text-base font-semibold rounded-full shadow-md hover:shadow-xl transform hover:scale-105 mb-2 sm:mb-0"
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition duration-300"
               disabled={isLoading}
             >
-              {isLoading ? 'Genererar...' : 'Generera CV'}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Genererar CV...
+                </>
+              ) : (
+                'Skapa CV'
+              )}
             </Button>
-            {cvUrl && (
-              <Button
-                type="button"
-                onClick={() => window.open(cvUrl, '_blank')}
-                className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white transition duration-300 ease-in-out px-6 py-2 text-base font-semibold rounded-full shadow-md hover:shadow-xl transform hover:scale-105"
-              >
-                Öppna genererat CV
-              </Button>
-            )}
-          </DialogFooter>
+          ) : (
+            <Button 
+              onClick={openGeneratedCV}
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition duration-300"
+            >
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Öppna genererat CV
+            </Button>
+          )}
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

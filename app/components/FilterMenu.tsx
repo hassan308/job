@@ -27,7 +27,6 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
     requiresCar: false,
   });
 
-  // Uppdatera dessa rader för att korrekt extrahera unika värden
   const uniqueEmploymentTypes = Array.from(new Set(jobs.map(job => job.employmentType)));
   const uniqueMunicipalities = Array.from(new Set(jobs.map(job => job.workplace?.municipality).filter(Boolean)));
 
@@ -55,26 +54,27 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
   }, [filters, onFilterChange]);
 
   return (
-    <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Filtrera jobb</h2>
-        <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg shadow-xl p-6 w-full max-w-md mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-indigo-800">Filtrera jobb</h2>
+        <button onClick={onClose} className="text-indigo-600 hover:text-indigo-800 transition-colors duration-200">
           <X size={24} />
         </button>
       </div>
       
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Anställningstyp</h3>
-          <div className="grid grid-cols-2 gap-2">
+          <h3 className="text-lg font-semibold text-indigo-700 mb-3">Anställningstyp</h3>
+          <div className="grid grid-cols-2 gap-3">
             {uniqueEmploymentTypes.map(type => (
-              <div key={type} className="flex items-center">
+              <div key={type} className="flex items-center space-x-2">
                 <Checkbox
                   id={`employment-${type}`}
                   checked={filters.employmentTypes.includes(type)}
                   onCheckedChange={() => handleCheckboxChange('employmentTypes', type)}
+                  className="text-indigo-600 focus:ring-indigo-500"
                 />
-                <Label htmlFor={`employment-${type}`} className="ml-2 text-sm text-gray-600">
+                <Label htmlFor={`employment-${type}`} className="text-sm text-indigo-800 cursor-pointer">
                   {type}
                 </Label>
               </div>
@@ -83,16 +83,17 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
         </div>
 
         <div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Kommun</h3>
-          <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+          <h3 className="text-lg font-semibold text-indigo-700 mb-3">Kommun</h3>
+          <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
             {uniqueMunicipalities.map(municipality => (
-              <div key={municipality} className="flex items-center">
+              <div key={municipality} className="flex items-center space-x-2">
                 <Checkbox
                   id={`municipality-${municipality}`}
                   checked={filters.municipalities.includes(municipality)}
                   onCheckedChange={() => handleCheckboxChange('municipalities', municipality)}
+                  className="text-indigo-600 focus:ring-indigo-500"
                 />
-                <Label htmlFor={`municipality-${municipality}`} className="ml-2 text-sm text-gray-600">
+                <Label htmlFor={`municipality-${municipality}`} className="text-sm text-indigo-800 cursor-pointer">
                   {municipality}
                 </Label>
               </div>
@@ -101,35 +102,38 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
         </div>
 
         <div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Krav</h3>
-          <div className="space-y-2">
-            <div className="flex items-center">
+          <h3 className="text-lg font-semibold text-indigo-700 mb-3">Krav</h3>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
               <Checkbox
                 id="requires-experience"
                 checked={filters.requiresExperience}
                 onCheckedChange={(checked) => handleCheckboxChange('requiresExperience', checked as boolean)}
+                className="text-indigo-600 focus:ring-indigo-500"
               />
-              <Label htmlFor="requires-experience" className="ml-2 text-sm text-gray-600">
+              <Label htmlFor="requires-experience" className="text-sm text-indigo-800 cursor-pointer">
                 Kräver erfarenhet
               </Label>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center space-x-2">
               <Checkbox
                 id="requires-license"
                 checked={filters.requiresLicense}
                 onCheckedChange={(checked) => handleCheckboxChange('requiresLicense', checked as boolean)}
+                className="text-indigo-600 focus:ring-indigo-500"
               />
-              <Label htmlFor="requires-license" className="ml-2 text-sm text-gray-600">
+              <Label htmlFor="requires-license" className="text-sm text-indigo-800 cursor-pointer">
                 Kräver körkort
               </Label>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center space-x-2">
               <Checkbox
                 id="requires-car"
                 checked={filters.requiresCar}
                 onCheckedChange={(checked) => handleCheckboxChange('requiresCar', checked as boolean)}
+                className="text-indigo-600 focus:ring-indigo-500"
               />
-              <Label htmlFor="requires-car" className="ml-2 text-sm text-gray-600">
+              <Label htmlFor="requires-car" className="text-sm text-indigo-800 cursor-pointer">
                 Kräver bil
               </Label>
             </div>

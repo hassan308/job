@@ -14,6 +14,7 @@ export default function SearchForm({ onSearch, loading }: SearchFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchTerm.trim()) {
+      console.log('Sökning initierad med:', searchTerm); // Ny console.log
       onSearch(searchTerm)
     }
   }

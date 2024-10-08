@@ -49,10 +49,10 @@ export default function JobList({ jobs, searchKeyword }: JobListProps) {
     setCurrentPage(1);
   }, [jobs])
 
-  const handleCreateCV = (jobDescription: string, jobTitle: string) => {
-    setSelectedJob({ description: jobDescription, title: jobTitle } as Job)
-    setIsCVDialogOpen(true)
-  }
+  const handleCreateCV = (job: Job) => {
+    setSelectedJob(job);
+    setIsCVDialogOpen(true);
+  };
 
   const handleCreateCoverLetter = () => {
     // Implementera logik för att skapa personligt brev här
@@ -81,7 +81,7 @@ export default function JobList({ jobs, searchKeyword }: JobListProps) {
         <JobCard 
           key={job.id} 
           job={job} 
-          onCreateCV={handleCreateCV}
+          onCreateCV={() => handleCreateCV(job)}
           onCreateCoverLetter={handleCreateCoverLetter}
         />
       ))}
