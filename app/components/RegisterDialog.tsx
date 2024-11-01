@@ -1,7 +1,10 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { auth } from '../firebase/firebaseConfig';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 interface RegisterDialogProps {
   isOpen: boolean;
@@ -9,31 +12,63 @@ interface RegisterDialogProps {
 }
 
 export default function RegisterDialog({ isOpen, onClose }: RegisterDialogProps) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: name });
+      onClose();
+    } catch (error) {
+      console.error('Registration error:', error);
+      setError('Det gick inte att registrera. Försök igen.');
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[400px] bg-white rounded-xl shadow-2xl">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-3xl font-bold text-gray-900">Registrera</DialogTitle>
-          <DialogDescription className="text-lg text-gray-600 mt-2">
-            Skapa ett nytt konto.
-          </DialogDescription>
+          <DialogTitle>Registrera dig</DialogTitle>
         </DialogHeader>
-        <form className="mt-4 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="register-email">E-post</Label>
-            <Input id="register-email" type="email" placeholder="din@email.com" required />
+        <form onSubmit={handleRegister} className="space-y-4">
+          <div>
+            <Label htmlFor="name">Namn</Label>
+            <Input 
+              id="name" 
+              value={name} 
+              onChange={(e) => setName(e.target.value)} 
+              required 
+            />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="register-password">Lösenord</Label>
-            <Input id="register-password" type="password" required />
+          <div>
+            <Label htmlFor="email">E-post</Label>
+            <Input 
+              id="email" 
+              type="email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+            />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirm-password">Bekräfta lösenord</Label>
-            <Input id="confirm-password" type="password" required />
+          <div>
+            <Label htmlFor="password">Lösenord</Label>
+            <Input 
+              id="password" 
+              type="password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+            />
           </div>
+          {error && <p className="text-red-500">{error}</p>}
           <Button type="submit" className="w-full">Registrera</Button>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

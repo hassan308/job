@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './firebase/firebaseConfig';
 import { signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from './firebase/firebaseConfig';
 import Header from './components/Header'
 import SearchForm from './components/SearchForm'
 import JobList from './components/JobList'
@@ -44,6 +46,7 @@ export default function JobSearch() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
   const handleSearch = async (searchTerm: string) => {
     console.log("Sökning initierad med:", searchTerm);
@@ -53,7 +56,7 @@ export default function JobSearch() {
     setSearchKeyword(searchTerm);
 
     try {
-      const response = await fetch('https://3llgqvm1-5000.euw.devtunnels.ms/search', {
+      const response = await fetch('http://localhost:8080/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,11 +69,10 @@ export default function JobSearch() {
       }
 
       const data: Job[] = await response.json();
-      console.log("Hämtade jobb:", data); // Ny console.log
+      console.log("API Response från backend:", JSON.stringify(data, null, 2));
       setJobs(data);
     } catch (error) {
       console.error('Ett fel inträffade:', error);
-      // Visa ett felmeddelande för användaren
     } finally {
       setIsLoading(false);
     }
@@ -86,6 +88,24 @@ export default function JobSearch() {
     signOut(auth).catch((error) => {
       console.error('Logout error:', error);
     });
+  };
+
+  const handleCreateCV = (job: Job) => {
+    if (user) {
+      setSelectedJob(job);
+      setIsCreateCVOpen(true);
+    } else {
+      setIsLoginOpen(true);
+    }
+  };
+
+  const handleCreateCoverLetter = (job: Job) => {
+    if (user) {
+      setSelectedJob(job);
+      setIsCreateCoverLetterOpen(true);
+    } else {
+      setIsLoginOpen(true);
+    }
   };
 
   return (
@@ -130,8 +150,8 @@ export default function JobSearch() {
                 >
                   <JobList 
                     jobs={jobs} 
-                    onCreateCV={() => setIsCreateCVOpen(true)} 
-                    onCreateCoverLetter={() => setIsCreateCoverLetterOpen(true)} 
+                    onCreateCV={handleCreateCV} 
+                    onCreateCoverLetter={handleCreateCoverLetter} 
                     searchKeyword={searchKeyword}
                   />
                 </motion.div>
@@ -144,10 +164,9 @@ export default function JobSearch() {
       <CVDialog 
         isOpen={isCreateCVOpen} 
         onClose={() => setIsCreateCVOpen(false)} 
-        onSubmit={(cvData: any) => {
-          console.log('CV Data:', cvData)
-          setIsCreateCVOpen(false)
-        }} 
+        jobDescription={selectedJob?.description || ''}
+        jobTitle={selectedJob?.title || ''}
+        onLoginRequired={() => setIsLoginOpen(true)}
       />
 
       <CoverLetterDialog 

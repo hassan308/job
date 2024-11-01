@@ -14,6 +14,7 @@ interface CVDialogProps {
   onClose: () => void;
   jobDescription: string;
   jobTitle: string;
+  onLoginRequired: () => void;
 }
 
 interface UserData {
@@ -38,7 +39,7 @@ const cvTemplates = [
   { id: 'template4', name: 'Professionell', image: '/cv-templates/4.png', free: false },
 ];
 
-export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle }: CVDialogProps) {
+export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle, onLoginRequired }: CVDialogProps) {
   const [userData, setUserData] = useState<UserData>({
     displayName: '',
     email: '',
@@ -69,40 +70,48 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle }: 
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (auth.currentUser) {
-        const cachedData = localStorage.getItem('userData');
-        const now = Date.now();
+      if (!auth.currentUser) {
+        onLoginRequired();
+        return;
+      }
 
-        if (cachedData) {
-          const parsedData: UserData = JSON.parse(cachedData);
-          if (now - parsedData.lastUpdated < CACHE_DURATION) {
-            setUserData(parsedData);
-            return;
-          }
-        }
+      const cachedData = localStorage.getItem('userData');
+      const now = Date.now();
 
-        const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-        if (userDoc.exists()) {
-          const firebaseData = userDoc.data() as Omit<UserData, 'lastUpdated'>;
-          const newUserData = {
-            ...firebaseData,
-            displayName: auth.currentUser.displayName || '',
-            email: auth.currentUser.email || '',
-            lastUpdated: now,
-          };
-          setUserData(newUserData);
-          localStorage.setItem('userData', JSON.stringify(newUserData));
+      if (cachedData) {
+        const parsedData: UserData = JSON.parse(cachedData);
+        if (now - parsedData.lastUpdated < CACHE_DURATION) {
+          setUserData(parsedData);
+          return;
         }
+      }
+
+      const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      if (userDoc.exists()) {
+        const firebaseData = userDoc.data() as Omit<UserData, 'lastUpdated'>;
+        const newUserData = {
+          ...firebaseData,
+          displayName: auth.currentUser.displayName || '',
+          email: auth.currentUser.email || '',
+          lastUpdated: now,
+        };
+        setUserData(newUserData);
+        localStorage.setItem('userData', JSON.stringify(newUserData));
       }
     };
 
     if (isOpen) {
       fetchUserData();
     }
-  }, [isOpen]);
+  }, [isOpen, onLoginRequired]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const selectedTemplateObj = cvTemplates.find(template => template.id === selectedTemplate);
+    if (!selectedTemplateObj?.free) {
+      alert('Detta är en PRO-mall. Vänligen uppgradera för att använda denna mall.');
+      return;
+    }
     setIsLoading(true);
     setGeneratedCVUrl(null);
 
@@ -113,8 +122,10 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle }: 
       template: selectedTemplate,
     };
     
+    console.log('Data som skickas till backend:', JSON.stringify(cvData, null, 2));
+    
     try {
-      const response = await fetch('https://3llgqvm1-5001.euw.devtunnels.ms/generate_cv', {
+      const response = await fetch('http://localhost:8080/generate_cv', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -161,6 +172,10 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle }: 
       window.open(generatedCVUrl, '_blank');
     }
   };
+
+  if (!auth.currentUser) {
+    return null; // Returnera null om användaren inte är inloggad
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

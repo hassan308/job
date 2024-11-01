@@ -10,10 +10,12 @@ import CVDialog from './CVDialog'
 
 interface JobListProps {
   jobs: Job[];
+  onCreateCV: (job: Job) => void;
+  onCreateCoverLetter: (job: Job) => void;
   searchKeyword: string;
 }
 
-export default function JobList({ jobs, searchKeyword }: JobListProps) {
+export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchKeyword }: JobListProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [showFilterMenu, setShowFilterMenu] = useState(false)
   const [filteredJobs, setFilteredJobs] = useState<Job[]>(jobs)
@@ -81,7 +83,7 @@ export default function JobList({ jobs, searchKeyword }: JobListProps) {
         <JobCard 
           key={job.id} 
           job={job} 
-          onCreateCV={() => handleCreateCV(job)}
+          onCreateCV={() => onCreateCV(job)}
           onCreateCoverLetter={handleCreateCoverLetter}
         />
       ))}
