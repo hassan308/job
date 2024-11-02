@@ -96,6 +96,9 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter }: JobCar
     );
   };
 
+  // Kolla om jobbet kräver erfarenhet baserat på workExperiences
+  const hasRequiredExperience = job.workExperiences?.some(exp => exp.required === false);
+
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300 bg-white rounded-xl">
       <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-6">
@@ -127,10 +130,21 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter }: JobCar
           )}
         </div>
         <div className="flex flex-wrap gap-2 mb-4">
-          {job.requiresExperience && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">👨‍💼 Erfarenhet krävs</span>}
-          {job.drivingLicense && job.drivingLicense.length > 0 && <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">🚗 Körkort krävs</span>}
-          {job.ownCar && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">🚙 Bil krävs</span>}
-          {job.education && job.education.required && <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">🎓 Utbildning krävs</span>}
+          {!hasRequiredExperience && (
+            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+              👨‍💼 Erfarenhet krävs
+            </span>
+          )}
+          {job.driving_license_required && (
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              🚗 Körkort krävs
+            </span>
+          )}
+          {job.own_car && (
+            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+              🚙 Bil krävs
+            </span>
+          )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-4">
           <div>

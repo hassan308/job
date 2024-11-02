@@ -4,6 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Job } from '../types';
 import { X } from 'lucide-react';
 import { TextField, Button, Box, Autocomplete } from '@mui/material';
+import { motion } from 'framer-motion';
+import { Briefcase, MapPin, GraduationCap } from 'lucide-react';
 
 // Lägg till denna array med populära sökförslag
 const popularSearches = [
@@ -25,78 +27,87 @@ interface FilterMenuProps {
 interface FilterState {
   employmentTypes: string[];
   municipalities: string[];
-  requiresExperience: boolean;
-  requiresLicense: boolean;
-  requiresCar: boolean;
+  experience_required: string[];
 }
 
 export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenuProps) {
   const [filters, setFilters] = useState<FilterState>({
     employmentTypes: [],
     municipalities: [],
-    requiresExperience: false,
-    requiresLicense: false,
-    requiresCar: false,
+    experience_required: [],
   });
 
   const uniqueEmploymentTypes = Array.from(new Set(jobs.map(job => job.employmentType)));
   const uniqueMunicipalities = Array.from(new Set(jobs.map(job => job.workplace?.municipality).filter(Boolean)));
 
-  const handleCheckboxChange = useCallback((category: keyof FilterState, value: string | boolean) => {
+  const handleCheckboxChange = useCallback((category: keyof FilterState, value: string) => {
     setFilters(prev => {
       const newFilters = { ...prev };
-      if (typeof value === 'boolean') {
-        newFilters[category] = value as any;
-      } else {
-        if (Array.isArray(newFilters[category])) {
-          const array = newFilters[category] as string[];
-          if (array.includes(value)) {
-            newFilters[category] = array.filter(item => item !== value) as any;
-          } else {
-            newFilters[category] = [...array, value] as any;
-          }
+      if (Array.isArray(newFilters[category])) {
+        const array = newFilters[category] as string[];
+        if (array.includes(value)) {
+          newFilters[category] = array.filter(item => item !== value) as any;
+        } else {
+          newFilters[category] = [...array, value] as any;
         }
       }
       return newFilters;
     });
   }, []);
 
-  useEffect(() => {
+  const handleReset = () => {
+    setFilters({
+      employmentTypes: [],
+      municipalities: [],
+      experience_required: [],
+    });
+  };
+
+  React.useEffect(() => {
     onFilterChange(filters);
   }, [filters, onFilterChange]);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 2 }}>
-      <Autocomplete
-        freeSolo
-        options={popularSearches}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Sök jobb"
-            variant="outlined"
-            fullWidth
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        )}
-        onInputChange={(event, newInputValue) => {
-          setSearchTerm(newInputValue);
-        }}
-        value={searchTerm}
-      />
-      <div className="space-y-8">
-        <div>
-          <h3 className="text-lg font-semibold text-indigo-700 mb-3">Anställningstyp</h3>
-          <div className="grid grid-cols-2 gap-3">
+    <motion.div 
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="bg-white rounded-2xl border border-gray-200 shadow-xl p-6 mb-8"
+    >
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
+          Filtrera jobb
+        </h2>
+        <button
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Anställningstyp */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <Briefcase className="w-5 h-5 text-blue-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900">Anställningstyp</h3>
+          </div>
+          <div className="space-y-3 pl-2">
             {uniqueEmploymentTypes.map(type => (
-              <div key={type} className="flex items-center space-x-2">
+              <div key={type} className="flex items-center space-x-3 group">
                 <Checkbox
                   id={`employment-${type}`}
                   checked={filters.employmentTypes.includes(type)}
                   onCheckedChange={() => handleCheckboxChange('employmentTypes', type)}
-                  className="text-indigo-600 focus:ring-indigo-500"
+                  className="text-blue-600 rounded-md data-[state=checked]:bg-blue-600"
                 />
-                <Label htmlFor={`employment-${type}`} className="text-sm text-indigo-800 cursor-pointer">
+                <Label 
+                  htmlFor={`employment-${type}`} 
+                  className="text-sm text-gray-600 group-hover:text-gray-900 cursor-pointer transition-colors"
+                >
                   {type}
                 </Label>
               </div>
@@ -104,18 +115,27 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
           </div>
         </div>
 
-        <div>
-          <h3 className="text-lg font-semibold text-indigo-700 mb-3">Kommun</h3>
-          <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+        {/* Kommun */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="p-2 bg-indigo-50 rounded-lg">
+              <MapPin className="w-5 h-5 text-indigo-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900">Kommun</h3>
+          </div>
+          <div className="max-h-[280px] overflow-y-auto pr-2 space-y-3 pl-2 custom-scrollbar">
             {uniqueMunicipalities.map(municipality => (
-              <div key={municipality} className="flex items-center space-x-2">
+              <div key={municipality} className="flex items-center space-x-3 group">
                 <Checkbox
                   id={`municipality-${municipality}`}
                   checked={filters.municipalities.includes(municipality)}
                   onCheckedChange={() => handleCheckboxChange('municipalities', municipality)}
-                  className="text-indigo-600 focus:ring-indigo-500"
+                  className="text-indigo-600 rounded-md data-[state=checked]:bg-indigo-600"
                 />
-                <Label htmlFor={`municipality-${municipality}`} className="text-sm text-indigo-800 cursor-pointer">
+                <Label 
+                  htmlFor={`municipality-${municipality}`} 
+                  className="text-sm text-gray-600 group-hover:text-gray-900 cursor-pointer transition-colors"
+                >
                   {municipality}
                 </Label>
               </div>
@@ -123,53 +143,49 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
           </div>
         </div>
 
-        <div>
-          <h3 className="text-lg font-semibold text-indigo-700 mb-3">Krav</h3>
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="requires-experience"
-                checked={filters.requiresExperience}
-                onCheckedChange={(checked) => handleCheckboxChange('requiresExperience', checked as boolean)}
-                className="text-indigo-600 focus:ring-indigo-500"
-              />
-              <Label htmlFor="requires-experience" className="text-sm text-indigo-800 cursor-pointer">
-                Kräver erfarenhet
-              </Label>
+        {/* Erfarenhet */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="p-2 bg-purple-50 rounded-lg">
+              <GraduationCap className="w-5 h-5 text-purple-600" />
             </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="requires-license"
-                checked={filters.requiresLicense}
-                onCheckedChange={(checked) => handleCheckboxChange('requiresLicense', checked as boolean)}
-                className="text-indigo-600 focus:ring-indigo-500"
-              />
-              <Label htmlFor="requires-license" className="text-sm text-indigo-800 cursor-pointer">
-                Kräver körkort
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="requires-car"
-                checked={filters.requiresCar}
-                onCheckedChange={(checked) => handleCheckboxChange('requiresCar', checked as boolean)}
-                className="text-indigo-600 focus:ring-indigo-500"
-              />
-              <Label htmlFor="requires-car" className="text-sm text-indigo-800 cursor-pointer">
-                Kräver bil
-              </Label>
-            </div>
+            <h3 className="font-semibold text-gray-900">Erfarenhet</h3>
+          </div>
+          <div className="space-y-3 pl-2">
+            {['Ja', 'Nej'].map(option => (
+              <div key={option} className="flex items-center space-x-3 group">
+                <Checkbox
+                  id={`experience-${option}`}
+                  checked={filters.experience_required.includes(option)}
+                  onCheckedChange={() => handleCheckboxChange('experience_required', option)}
+                  className="text-purple-600 rounded-md data-[state=checked]:bg-purple-600"
+                />
+                <Label 
+                  htmlFor={`experience-${option}`} 
+                  className="text-sm text-gray-600 group-hover:text-gray-900 cursor-pointer transition-colors"
+                >
+                  {option === 'Ja' ? '👨‍💼 Erfarenhet krävs' : 'Ingen erfarenhet krävs'}
+                </Label>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-        <Button variant="contained" color="primary" onClick={handleSearch}>
-          Sök
-        </Button>
-        <Button variant="outlined" onClick={handleReset}>
+
+      <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+        <button
+          onClick={handleReset}
+          className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors hover:bg-gray-50 rounded-lg"
+        >
           Återställ filter
-        </Button>
-      </Box>
-    </Box>
+        </button>
+        <button
+          onClick={onClose}
+          className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg"
+        >
+          Tillämpa filter
+        </button>
+      </div>
+    </motion.div>
   );
 }
