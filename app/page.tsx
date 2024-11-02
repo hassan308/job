@@ -284,32 +284,34 @@ export default function JobSearch() {
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center mt-8 space-y-4"
+              className="fixed inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-50"
             >
-              <div className="relative">
-                <div className="w-12 h-12 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin"></div>
-                <div className="absolute top-0 left-0 w-12 h-12 rounded-full border-4 border-transparent border-r-blue-600 animate-[spin_1.5s_linear_infinite]"></div>
+              <div className="relative flex flex-col items-center p-8 rounded-2xl bg-white shadow-2xl">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin"></div>
+                  <div className="absolute top-0 left-0 w-16 h-16 rounded-full border-4 border-transparent border-r-blue-600 animate-[spin_1.5s_linear_infinite]"></div>
+                </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="mt-6 text-lg font-medium text-gray-700"
+                >
+                  Söker efter jobb...
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 1, 0] }}
+                  transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "loop"
+                  }}
+                  className="mt-2 text-sm text-gray-500"
+                >
+                  Detta kan ta några sekunder
+                </motion.div>
               </div>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-gray-600 font-medium"
-              >
-                Söker efter jobb...
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0, 1, 0] }}
-                transition={{ 
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatType: "loop"
-                }}
-                className="text-sm text-gray-500"
-              >
-                Detta kan ta några sekunder
-              </motion.div>
             </motion.div>
           )}
 

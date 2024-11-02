@@ -67,6 +67,24 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
     onFilterChange(filters);
   }, [filters, onFilterChange]);
 
+  // Räkna antal jobb per kategori
+  const municipalityCount = uniqueMunicipalities.reduce((acc, municipality) => {
+    acc[municipality] = jobs.filter(job => job.workplace?.municipality === municipality).length;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Uppdaterad räkning för anställningstyper
+  const employmentTypeCount = uniqueEmploymentTypes.reduce((acc, type) => {
+    acc[type] = jobs.filter(job => job.employmentType === type).length;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Återställd räkning för erfarenhetskrav
+  const experienceCount = {
+    'Ja': jobs.filter(job => !job.workExperiences?.some(exp => exp.required === false)).length,
+    'Nej': jobs.filter(job => job.workExperiences?.some(exp => exp.required === false)).length,
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
@@ -97,19 +115,24 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
           </div>
           <div className="space-y-3 pl-2">
             {uniqueEmploymentTypes.map(type => (
-              <div key={type} className="flex items-center space-x-3 group">
-                <Checkbox
-                  id={`employment-${type}`}
-                  checked={filters.employmentTypes.includes(type)}
-                  onCheckedChange={() => handleCheckboxChange('employmentTypes', type)}
-                  className="text-blue-600 rounded-md data-[state=checked]:bg-blue-600"
-                />
-                <Label 
-                  htmlFor={`employment-${type}`} 
-                  className="text-sm text-gray-600 group-hover:text-gray-900 cursor-pointer transition-colors"
-                >
-                  {type}
-                </Label>
+              <div key={type} className="flex items-center justify-between group">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`employment-${type}`}
+                    checked={filters.employmentTypes.includes(type)}
+                    onCheckedChange={() => handleCheckboxChange('employmentTypes', type)}
+                    className="text-blue-600 rounded-md data-[state=checked]:bg-blue-600"
+                  />
+                  <Label 
+                    htmlFor={`employment-${type}`} 
+                    className="text-sm text-gray-600 group-hover:text-gray-900 cursor-pointer transition-colors"
+                  >
+                    {type}
+                  </Label>
+                </div>
+                <span className="text-xs text-gray-500">
+                  {employmentTypeCount[type]} jobb
+                </span>
               </div>
             ))}
           </div>
@@ -125,19 +148,24 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
           </div>
           <div className="max-h-[280px] overflow-y-auto pr-2 space-y-3 pl-2 custom-scrollbar">
             {uniqueMunicipalities.map(municipality => (
-              <div key={municipality} className="flex items-center space-x-3 group">
-                <Checkbox
-                  id={`municipality-${municipality}`}
-                  checked={filters.municipalities.includes(municipality)}
-                  onCheckedChange={() => handleCheckboxChange('municipalities', municipality)}
-                  className="text-indigo-600 rounded-md data-[state=checked]:bg-indigo-600"
-                />
-                <Label 
-                  htmlFor={`municipality-${municipality}`} 
-                  className="text-sm text-gray-600 group-hover:text-gray-900 cursor-pointer transition-colors"
-                >
-                  {municipality}
-                </Label>
+              <div key={municipality} className="flex items-center justify-between group">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`municipality-${municipality}`}
+                    checked={filters.municipalities.includes(municipality)}
+                    onCheckedChange={() => handleCheckboxChange('municipalities', municipality)}
+                    className="text-indigo-600 rounded-md data-[state=checked]:bg-indigo-600"
+                  />
+                  <Label 
+                    htmlFor={`municipality-${municipality}`} 
+                    className="text-sm text-gray-600 group-hover:text-gray-900 cursor-pointer transition-colors"
+                  >
+                    {municipality}
+                  </Label>
+                </div>
+                <span className="text-xs text-gray-500">
+                  {municipalityCount[municipality]} jobb
+                </span>
               </div>
             ))}
           </div>
@@ -153,19 +181,24 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
           </div>
           <div className="space-y-3 pl-2">
             {['Ja', 'Nej'].map(option => (
-              <div key={option} className="flex items-center space-x-3 group">
-                <Checkbox
-                  id={`experience-${option}`}
-                  checked={filters.experience_required.includes(option)}
-                  onCheckedChange={() => handleCheckboxChange('experience_required', option)}
-                  className="text-purple-600 rounded-md data-[state=checked]:bg-purple-600"
-                />
-                <Label 
-                  htmlFor={`experience-${option}`} 
-                  className="text-sm text-gray-600 group-hover:text-gray-900 cursor-pointer transition-colors"
-                >
-                  {option === 'Ja' ? '👨‍💼 Erfarenhet krävs' : 'Ingen erfarenhet krävs'}
-                </Label>
+              <div key={option} className="flex items-center justify-between group">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`experience-${option}`}
+                    checked={filters.experience_required.includes(option)}
+                    onCheckedChange={() => handleCheckboxChange('experience_required', option)}
+                    className="text-purple-600 rounded-md data-[state=checked]:bg-purple-600"
+                  />
+                  <Label 
+                    htmlFor={`experience-${option}`} 
+                    className="text-sm text-gray-600 group-hover:text-gray-900 cursor-pointer transition-colors"
+                  >
+                    {option === 'Ja' ? 'Erfarenhet krävs' : 'Ingen erfarenhet krävs'}
+                  </Label>
+                </div>
+                <span className="text-xs text-gray-500">
+                  {experienceCount[option]} jobb
+                </span>
               </div>
             ))}
           </div>
