@@ -8,7 +8,6 @@ import { signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from './firebase/firebaseConfig';
 import Header from './components/Header'
-import SearchForm from './components/SearchForm'
 import JobList from './components/JobList'
 import CVDialog from './components/CVDialog'
 import CoverLetterDialog from './components/CoverLetterDialog'
