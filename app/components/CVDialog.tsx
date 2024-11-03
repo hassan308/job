@@ -101,9 +101,10 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle, on
     };
 
     if (isOpen) {
+      setGeneratedCVUrl(null);
       fetchUserData();
     }
-  }, [isOpen, onLoginRequired]);
+  }, [isOpen, onLoginRequired, jobTitle]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,6 +170,7 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle, on
 
   const openGeneratedCV = () => {
     if (generatedCVUrl) {
+      // Öppna bara URL:en i ny flik utan att generera nytt CV
       window.open(generatedCVUrl, '_blank');
     }
   };
@@ -265,6 +267,7 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle, on
               type="submit" 
               className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition duration-300"
               disabled={isLoading}
+              onClick={handleSubmit}  // Generera CV endast när "Skapa CV" klickas
             >
               {isLoading ? (
                 <>
@@ -277,7 +280,8 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle, on
             </Button>
           ) : (
             <Button 
-              onClick={openGeneratedCV}
+              type="button"  // Ändra till type="button" för att förhindra form submission
+              onClick={openGeneratedCV}  // Använd openGeneratedCV istället för handleSubmit
               className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition duration-300"
             >
               <ExternalLink className="mr-2 h-4 w-4" />

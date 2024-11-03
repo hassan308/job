@@ -191,28 +191,34 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter }: JobCar
           <Button 
             onClick={() => setExpanded(!expanded)} 
             variant="outline" 
-            className="text-indigo-600 hover:bg-indigo-50 border-indigo-300 w-full sm:w-auto transition-all duration-300 text-sm sm:text-base rounded-full"
+            className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 w-full sm:w-auto transition-all duration-300 text-sm rounded-full px-4 py-2 shadow-sm hover:shadow"
           >
             {expanded ? (
               <>
-                <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                <ChevronUp className="h-4 w-4 mr-2" />
                 Visa mindre
               </>
             ) : (
               <>
-                <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                <ChevronDown className="h-4 w-4 mr-2" />
                 Läs mer
               </>
             )}
           </Button>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
-            <Button onClick={onCreateCV} className="bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 text-green-700 w-full sm:w-auto transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm rounded-full px-3 py-1 sm:px-4 sm:py-2">
-              <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <Button 
+              onClick={onCreateCV} 
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white w-full sm:w-auto transition-all duration-300 shadow-md hover:shadow-lg text-sm rounded-full px-6 py-2 font-medium"
+            >
+              <FileText className="h-4 w-4 mr-2" />
               Skapa CV
             </Button>
-            <Button onClick={onCreateCoverLetter} className="bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 text-purple-700 w-full sm:w-auto transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm rounded-full px-3 py-1 sm:px-4 sm:py-2">
-              <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              Skapa Personligt Brev
+            <Button 
+              disabled
+              className="bg-gradient-to-r from-blue-200 to-indigo-200 text-blue-700 border-none w-full sm:w-auto transition-all duration-300 cursor-not-allowed text-sm rounded-full px-6 py-2 font-medium flex items-center justify-center shadow-sm opacity-75"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Personligt Brev (Kommer snart)
             </Button>
           </div>
         </div>
