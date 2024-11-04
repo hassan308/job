@@ -37,7 +37,7 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
     experience_required: [],
   });
 
-  const uniqueEmploymentTypes = Array.from(new Set(jobs.map(job => job.employmentType)));
+  const uniqueEmploymentTypes = Array.from(new Set(jobs.map(job => job.employment_type)));
   const uniqueMunicipalities = Array.from(new Set(jobs.map(job => job.workplace?.municipality).filter(Boolean)));
 
   const handleCheckboxChange = useCallback((category: keyof FilterState, value: string) => {
@@ -75,7 +75,7 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
 
   // Uppdaterad räkning för anställningstyper
   const employmentTypeCount = uniqueEmploymentTypes.reduce((acc, type) => {
-    acc[type] = jobs.filter(job => job.employmentType === type).length;
+    acc[type] = jobs.filter(job => job.employment_type === type).length;
     return acc;
   }, {} as Record<string, number>);
 

@@ -117,7 +117,7 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter }: JobCar
           </span>
           <span className="flex items-center">
             <Clock className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-purple-500" />
-            {job.employmentType}
+            {job.employment_type}
           </span>
         </div>
         <div className="mb-4 overflow-hidden">
@@ -148,13 +148,13 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter }: JobCar
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-4">
           <div>
-            <span className="font-semibold">📅 Publicerad:</span> {new Date(job.publishedDate).toLocaleDateString('sv-SE')}
+            <span className="font-semibold">📅 Publicerad:</span> {new Date(job.published_date).toLocaleDateString('sv-SE')}
           </div>
           <div>
             <span className="font-semibold">🏢 Arbetstid:</span> {job.workTimeExtent}
           </div>
           <div>
-            <span className="font-semibold">💼 Anställningsform:</span> {job.employmentType}
+            <span className="font-semibold">💼 Anställningsform:</span> {job.employment_type}
           </div>
           <div>
             <span className="font-semibold">🕒 Varaktighet:</span> {job.duration}
@@ -168,7 +168,7 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter }: JobCar
             </div>
           )}
           <div className="col-span-1 sm:col-span-2">
-            <span className="font-semibold">⏰ Sista ansökningsdag:</span> {new Date(job.lastApplicationDate).toLocaleDateString('sv-SE')}
+            <span className="font-semibold">⏰ Sista ansökningsdag:</span> {new Date(job.last_application_date).toLocaleDateString('sv-SE')}
           </div>
         </div>
         {job.application && (

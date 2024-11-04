@@ -32,23 +32,23 @@ export interface Job {
   workplace: {
     municipality: string | null;
   };
-  // API response fields
+  // API format (snake_case)
   employment_type: string;
   published_date: string;
   last_application_date: string;
-  
-  // Frontend display fields (mapped from API fields)
-  employmentType: string;
-  publishedDate: string;
-  lastApplicationDate: string;
-  
-  // Additional fields
-  workTimeExtent: string;
+  work_time_extent: string;
   duration: string;
   positions: number;
-  salaryDescription?: string;
-  workExperiences?: WorkExperience[];
-  application?: JobApplication;
+  salary_description?: string;
+  work_experiences?: {
+    required: boolean;
+    description: string;
+  }[];
+  application?: {
+    webAddress?: string;
+    email?: string;
+    reference?: string;
+  };
   driving_license_required?: boolean;
   own_car?: boolean;
 } 
