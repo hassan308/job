@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react'
 import JobCard from './JobCard'
 import Pagination from './Pagination'
 import FilterMenu from './FilterMenu'
-import SalaryDashboard from './SalaryDashboard'
 import { Button } from "@/components/ui/button"
 import { Filter } from 'lucide-react'
 import { Job } from '../types'
@@ -45,12 +44,12 @@ export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchK
     const newFilteredJobs = jobs.filter(job => {
       console.log('Job Details:', {
         title: job.title,
-        workExperiences: job.workExperiences,
+        work_experiences: job.work_experiences,
         employment_type: job.employment_type,
         workplace: job.workplace,
       });
 
-      if (filters.employmentTypes.length > 0 && !filters.employmentTypes.includes(job.employmentType)) {
+      if (filters.employmentTypes.length > 0 && !filters.employmentTypes.includes(job.employment_type)) {
         return false;
       }
 
@@ -59,14 +58,8 @@ export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchK
       }
 
       if (filters.experience_required.length > 0) {
-        const hasRequiredExperience = job.workExperiences?.some(exp => exp.required === false);
+        const hasRequiredExperience = job.work_experiences?.some(exp => exp.required === false);
         const jobExperience = hasRequiredExperience ? 'Nej' : 'Ja';
-        
-        console.log('Job:', job.title);
-        console.log('Work Experiences:', job.workExperiences);
-        console.log('Has Required Experience:', hasRequiredExperience);
-        console.log('Job experience value:', jobExperience);
-        console.log('Selected filters:', filters.experience_required);
         
         if (!filters.experience_required.includes(jobExperience)) {
           return false;
@@ -87,6 +80,11 @@ export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchK
   const handleCreateCoverLetter = () => {
     // Implementera logik för att skapa personligt brev här
   }
+
+  const handleLoginRequired = () => {
+    setIsCVDialogOpen(false);
+    // Här kan du lägga till logik för att visa login dialog
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8">
@@ -155,6 +153,7 @@ export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchK
           onClose={() => setIsCVDialogOpen(false)}
           jobDescription={selectedJob.description}
           jobTitle={selectedJob.title}
+          onLoginRequired={handleLoginRequired}
         />
       )}
     </div>

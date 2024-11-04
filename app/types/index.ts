@@ -30,25 +30,27 @@ export interface Job {
     name: string;
   };
   workplace: {
-    municipality: string | null;
+    municipality: string;
   };
-  // API format (snake_case)
+  work_experiences: WorkExperience[];
+  work_time_extent: string;
   employment_type: string;
   published_date: string;
   last_application_date: string;
-  work_time_extent: string;
   duration: string;
   positions: number;
   salary_description?: string;
-  work_experiences?: {
-    required: boolean;
-    description: string;
-  }[];
-  application?: {
-    webAddress?: string;
-    email?: string;
-    reference?: string;
-  };
-  driving_license_required?: boolean;
-  own_car?: boolean;
-} 
+  application?: JobApplication;
+  driving_license_required: boolean;
+  own_car: boolean;
+}
+
+export interface FilterState {
+  employmentTypes: string[];
+  municipalities: string[];
+  experience_required: string[];
+}
+
+export interface ExperienceCount {
+  [key: string]: number;
+}

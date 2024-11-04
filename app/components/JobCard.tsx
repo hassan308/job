@@ -96,8 +96,8 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter }: JobCar
     );
   };
 
-  // Kolla om jobbet kräver erfarenhet baserat på workExperiences
-  const hasRequiredExperience = job.workExperiences?.some(exp => exp.required === false);
+  // Kolla om jobbet kräver erfarenhet baserat på work_experiences
+  const hasRequiredExperience = job.work_experiences?.some(exp => exp.required === false);
 
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300 bg-white rounded-xl">
@@ -151,7 +151,7 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter }: JobCar
             <span className="font-semibold">📅 Publicerad:</span> {new Date(job.published_date).toLocaleDateString('sv-SE')}
           </div>
           <div>
-            <span className="font-semibold">🏢 Arbetstid:</span> {job.workTimeExtent}
+            <span className="font-semibold">🏢 Arbetstid:</span> {job.work_time_extent}
           </div>
           <div>
             <span className="font-semibold">💼 Anställningsform:</span> {job.employment_type}
@@ -162,9 +162,9 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter }: JobCar
           <div>
             <span className="font-semibold">👥 Antal tjänster:</span> {job.positions}
           </div>
-          {job.salaryDescription && (
+          {job.salary_description && (
             <div>
-              <span className="font-semibold">💰 Lön:</span> {job.salaryDescription}
+              <span className="font-semibold">💰 Lön:</span> {job.salary_description}
             </div>
           )}
           <div className="col-span-1 sm:col-span-2">

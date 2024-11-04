@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Job } from '../types';
+import { Job, FilterState, ExperienceCount, WorkExperience } from '../types/index';
 import { X } from 'lucide-react';
-import { TextField, Button, Box, Autocomplete } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Briefcase, MapPin, GraduationCap } from 'lucide-react';
 
@@ -24,12 +23,6 @@ interface FilterMenuProps {
   onClose: () => void;
 }
 
-interface FilterState {
-  employmentTypes: string[];
-  municipalities: string[];
-  experience_required: string[];
-}
-
 export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenuProps) {
   const [filters, setFilters] = useState<FilterState>({
     employmentTypes: [],
@@ -38,7 +31,11 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
   });
 
   const uniqueEmploymentTypes = Array.from(new Set(jobs.map(job => job.employment_type)));
-  const uniqueMunicipalities = Array.from(new Set(jobs.map(job => job.workplace?.municipality).filter(Boolean)));
+  const uniqueMunicipalities = Array.from(
+    new Set(
+      jobs.map(job => job.workplace.municipality).filter(Boolean)
+    )
+  );
 
   const handleCheckboxChange = useCallback((category: keyof FilterState, value: string) => {
     setFilters(prev => {
@@ -69,7 +66,7 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
 
   // Räkna antal jobb per kategori
   const municipalityCount = uniqueMunicipalities.reduce((acc, municipality) => {
-    acc[municipality] = jobs.filter(job => job.workplace?.municipality === municipality).length;
+    acc[municipality] = jobs.filter(job => job.workplace.municipality === municipality).length;
     return acc;
   }, {} as Record<string, number>);
 
@@ -80,9 +77,9 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
   }, {} as Record<string, number>);
 
   // Återställd räkning för erfarenhetskrav
-  const experienceCount = {
-    'Ja': jobs.filter(job => !job.workExperiences?.some(exp => exp.required === false)).length,
-    'Nej': jobs.filter(job => job.workExperiences?.some(exp => exp.required === false)).length,
+  const experienceCount: ExperienceCount = {
+    'Ja': jobs.filter(job => !job.work_experiences?.some(exp => exp.required === false)).length,
+    'Nej': jobs.filter(job => job.work_experiences?.some(exp => exp.required === false)).length,
   };
 
   return (
