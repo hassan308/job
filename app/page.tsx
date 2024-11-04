@@ -15,25 +15,7 @@ import LoginDialog from './components/LoginDialog'
 import RegisterDialog from './components/RegisterDialog'
 import ProfileDialog from './components/ProfileDialog'
 import { Search, Code, Palette, Database, Briefcase, FileText, Zap } from 'lucide-react'
-
-interface Job {
-  id: string;
-  title: string;
-  description: string;
-  company: {
-    name: string;
-  };
-  workplace: {
-    municipality: string | null;
-  };
-  published_date: string;
-  last_application_date: string;
-  employment_type: string;
-  working_hours_type: string;
-  own_car: boolean;
-  driving_license_required: boolean;
-  experience_required: boolean;
-}
+import { Job } from './types'
 
 export default function JobSearch() {
   const [user, loading, error] = useAuthState(auth);

@@ -51,7 +51,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         lastUpdated: Date.now()
       }, { merge: true });
       
-      setUserData(prev => prev ? { ...prev, ...newData } : null);
+      setUserData((prev: UserData | null) => prev ? { ...prev, ...newData } : null);
     } catch (err) {
       setError('Kunde inte uppdatera användardata');
       throw err;

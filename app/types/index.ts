@@ -21,9 +21,9 @@ export interface Job {
   workplace: {
     municipality: string | null;
   };
+  employment_type: string;
   published_date: string;
   last_application_date: string;
-  employment_type: string;
   workTimeExtent: string;
   duration: string;
   positions: number;
@@ -37,4 +37,6 @@ export interface Job {
     email?: string;
     reference?: string;
   };
+  driving_license_required?: boolean;
+  own_car?: boolean;
 } 
