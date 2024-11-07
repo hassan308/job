@@ -1,8 +1,9 @@
 // filter.tsx
 import React, { useState, useCallback, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Job, FilterState } from '../type'; // Uppdaterad import
+import { Job, FilterState } from '../types';
 import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Briefcase, MapPin, GraduationCap } from 'lucide-react';
@@ -12,6 +13,13 @@ interface FilterMenuProps {
   onFilterChange: (filters: FilterState) => void;
   onClose: () => void;
 }
+
+// Lägg till en typ för experienceCount
+type ExperienceCountType = {
+  'Ja': number;
+  'Nej': number;
+  [key: string]: number;  // Index signature som tillåter string-indexering
+};
 
 export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenuProps) {
   const [filters, setFilters] = useState<FilterState>({
@@ -64,7 +72,7 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
     return acc;
   }, {} as Record<string, number>);
 
-  const experienceCount = {
+  const experienceCount: ExperienceCountType = {
     'Ja': jobs.filter(job => job.requiresExperience).length,
     'Nej': jobs.filter(job => !job.requiresExperience).length,
   };
