@@ -84,6 +84,21 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter, searchKe
     });
   };
 
+  // Lägg till en funktion för att styla emojis
+  const getEmojiStyle = (dominantColor: string) => {
+    return {
+      background: `linear-gradient(135deg, 
+        ${dominantColor}, 
+        ${dominantColor}90)`,
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      display: 'inline-block',
+      transform: 'scale(1.2)',
+      filter: `drop-shadow(0 0 2px ${dominantColor}40)`,
+      transition: 'all 0.3s ease'
+    };
+  };
+
   return (
     <div className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 overflow-hidden">
       {/* Hörnfärger från logotypen */}
@@ -130,11 +145,27 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter, searchKe
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1">{job.title}</h3>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-sm text-gray-600">
                   <span className="flex items-center gap-1.5">
-                    <Building2 className="w-4 h-4 text-gray-400" />
+                    <Building2 
+                      className="w-4 h-4" 
+                      style={colors ? {
+                        color: colors.dominant,
+                        filter: `drop-shadow(0 0 2px ${colors.dominant}40)`
+                      } : {
+                        color: '#4F46E5'
+                      }}
+                    />
                     {job.company.name}
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-gray-400" />
+                    <MapPin 
+                      className="w-4 h-4" 
+                      style={colors ? {
+                        color: colors.dominant,
+                        filter: `drop-shadow(0 0 2px ${colors.dominant}40)`
+                      } : {
+                        color: '#4F46E5'
+                      }}
+                    />
                     {job.workplace.municipality}
                   </span>
                 </div>
@@ -233,15 +264,56 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter, searchKe
             {/* Kontaktpersoner */}
             {job.contacts && job.contacts.length > 0 && (
               <div className="bg-white shadow-sm border border-gray-100 p-3 sm:p-4 rounded-xl mb-6">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">
-                  📞 Kontaktpersoner
+                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <span 
+                    className="w-4 h-4"
+                    style={colors ? {
+                      color: colors.dominant,
+                      filter: `drop-shadow(0 0 2px ${colors.dominant}40)`
+                    } : {
+                      color: '#4F46E5'
+                    }}
+                  >
+                    📞
+                  </span>
+                  Kontaktpersoner
                 </h4>
                 <div className="space-y-3">
                   {job.contacts.map((contact, index) => (
                     <div key={index} className="text-sm">
                       <p className="font-medium text-gray-900">{contact.description}</p>
-                      {contact.phoneNumber && <p className="text-gray-600">☎️ {contact.phoneNumber}</p>}
-                      {contact.email && <p className="text-gray-600">✉️ {contact.email}</p>}
+                      {contact.phoneNumber && (
+                        <p className="text-gray-600 flex items-center gap-2">
+                          <span 
+                            className="w-4 h-4"
+                            style={colors ? {
+                              color: colors.dominant,
+                              filter: `drop-shadow(0 0 2px ${colors.dominant}40)`
+                            } : {
+                              color: '#4F46E5'
+                            }}
+                          >
+                            ☎️
+                          </span>
+                          {contact.phoneNumber}
+                        </p>
+                      )}
+                      {contact.email && (
+                        <p className="text-gray-600 flex items-center gap-2">
+                          <span 
+                            className="w-4 h-4"
+                            style={colors ? {
+                              color: colors.dominant,
+                              filter: `drop-shadow(0 0 2px ${colors.dominant}40)`
+                            } : {
+                              color: '#4F46E5'
+                            }}
+                          >
+                            ✉️
+                          </span>
+                          {contact.email}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
