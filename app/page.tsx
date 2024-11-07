@@ -1,30 +1,31 @@
+// page.tsx
+
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './firebase/firebaseConfig';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from './firebase/firebaseConfig';
-import Header from './components/Header'
-import JobList from './components/JobList'
-import CVDialog from './components/CVDialog'
-import CoverLetterDialog from './components/CoverLetterDialog'
-import LoginDialog from './components/LoginDialog'
-import RegisterDialog from './components/RegisterDialog'
-import ProfileDialog from './components/ProfileDialog'
-import { Search, Code, Palette, Database, Briefcase, FileText, Zap } from 'lucide-react'
-import { Job } from './types'
+import Header from './components/Header';
+import JobList from './components/JobList';
+import CVDialog from './components/CVDialog';
+import CoverLetterDialog from './components/CoverLetterDialog';
+import LoginDialog from './components/LoginDialog';
+import RegisterDialog from './components/RegisterDialog';
+import ProfileDialog from './components/ProfileDialog';
+import { Search, FileText, Zap } from 'lucide-react';
+import { Job } from './type'; // Uppdaterad import
+import { API_ENDPOINTS } from './config/api';
 
 export default function JobSearch() {
   const [user, loading, error] = useAuthState(auth);
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [isCreateCVOpen, setIsCreateCVOpen] = useState(false)
-  const [isCreateCoverLetterOpen, setIsCreateCoverLetterOpen] = useState(false)
-  const [isLoginOpen, setIsLoginOpen] = useState(false)
-  const [isRegisterOpen, setIsRegisterOpen] = useState(false)
-  const [isInitialView, setIsInitialView] = useState(true)
+  const [isCreateCVOpen, setIsCreateCVOpen] = useState(false);
+  const [isCreateCoverLetterOpen, setIsCreateCoverLetterOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [isInitialView, setIsInitialView] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -43,11 +44,11 @@ export default function JobSearch() {
     console.log("Sökning initierad med:", searchTerm);
     setIsInitialView(false);
     setIsLoading(true);
-    setJobs([]);
-    setSearchKeyword(searchTerm);
+    setJobs([]); // Rensa tidigare jobb
+    setSearchKeyword(searchTerm); // Uppdatera sökordet
 
     try {
-      const response = await fetch('https://smidra.com/search', {
+      const response = await fetch(API_ENDPOINTS.search, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,7 +62,7 @@ export default function JobSearch() {
 
       const data: Job[] = await response.json();
       console.log("API Response från backend:", JSON.stringify(data, null, 2));
-      setJobs(data);
+      setJobs(data); // Uppdatera jobben
     } catch (error) {
       console.error('Ett fel inträffade:', error);
     } finally {
@@ -70,10 +71,10 @@ export default function JobSearch() {
   };
 
   const resetToInitialView = () => {
-    setIsInitialView(true)
-    setJobs([])
-    setSearchKeyword('')
-  }
+    setIsInitialView(true);
+    setJobs([]);
+    setSearchKeyword('');
+  };
 
   const handleLogout = () => {
     signOut(auth).catch((error) => {
@@ -309,7 +310,6 @@ export default function JobSearch() {
                   jobs={jobs} 
                   onCreateCV={handleCreateCV} 
                   onCreateCoverLetter={handleCreateCoverLetter} 
-                  searchKeyword={searchKeyword}
                 />
               </motion.div>
             )}
@@ -336,5 +336,5 @@ export default function JobSearch() {
       <RegisterDialog isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} />
       <ProfileDialog isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </div>
-  )
+  );
 }

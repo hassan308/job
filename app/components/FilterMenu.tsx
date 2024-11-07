@@ -1,21 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+// filter.tsx
+import React, { useState, useCallback, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Job, FilterState, ExperienceCount, WorkExperience } from '../types/index';
+import { Job, FilterState } from '../type'; // Uppdaterad import
 import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Briefcase, MapPin, GraduationCap } from 'lucide-react';
-
-// Lägg till denna array med populära sökförslag
-const popularSearches = [
-  'Systemutvecklare',
-  'Frontend-utvecklare',
-  'Backend-utvecklare',
-  'Fullstack-utvecklare',
-  'DevOps-ingenjör',
-  'Data Scientist',
-  'UX-designer',
-];
 
 interface FilterMenuProps {
   jobs: Job[];
@@ -27,10 +17,10 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
   const [filters, setFilters] = useState<FilterState>({
     employmentTypes: [],
     municipalities: [],
-    experience_required: [],
+    experienceRequired: [],
   });
 
-  const uniqueEmploymentTypes = Array.from(new Set(jobs.map(job => job.employment_type)));
+  const uniqueEmploymentTypes = Array.from(new Set(jobs.map(job => job.employmentType)));
   const uniqueMunicipalities = Array.from(
     new Set(
       jobs.map(job => job.workplace.municipality).filter(Boolean)
@@ -43,9 +33,9 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
       if (Array.isArray(newFilters[category])) {
         const array = newFilters[category] as string[];
         if (array.includes(value)) {
-          newFilters[category] = array.filter(item => item !== value) as any;
+          newFilters[category] = array.filter(item => item !== value);
         } else {
-          newFilters[category] = [...array, value] as any;
+          newFilters[category] = [...array, value];
         }
       }
       return newFilters;
@@ -56,30 +46,27 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
     setFilters({
       employmentTypes: [],
       municipalities: [],
-      experience_required: [],
+      experienceRequired: [],
     });
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     onFilterChange(filters);
   }, [filters, onFilterChange]);
 
-  // Räkna antal jobb per kategori
   const municipalityCount = uniqueMunicipalities.reduce((acc, municipality) => {
     acc[municipality] = jobs.filter(job => job.workplace.municipality === municipality).length;
     return acc;
   }, {} as Record<string, number>);
 
-  // Uppdaterad räkning för anställningstyper
   const employmentTypeCount = uniqueEmploymentTypes.reduce((acc, type) => {
-    acc[type] = jobs.filter(job => job.employment_type === type).length;
+    acc[type] = jobs.filter(job => job.employmentType === type).length;
     return acc;
   }, {} as Record<string, number>);
 
-  // Återställd räkning för erfarenhetskrav
-  const experienceCount: ExperienceCount = {
-    'Ja': jobs.filter(job => !job.work_experiences?.some(exp => exp.required === false)).length,
-    'Nej': jobs.filter(job => job.work_experiences?.some(exp => exp.required === false)).length,
+  const experienceCount = {
+    'Ja': jobs.filter(job => job.requiresExperience).length,
+    'Nej': jobs.filter(job => !job.requiresExperience).length,
   };
 
   return (
@@ -182,8 +169,8 @@ export default function FilterMenu({ jobs, onFilterChange, onClose }: FilterMenu
                 <div className="flex items-center space-x-3">
                   <Checkbox
                     id={`experience-${option}`}
-                    checked={filters.experience_required.includes(option)}
-                    onCheckedChange={() => handleCheckboxChange('experience_required', option)}
+                    checked={filters.experienceRequired.includes(option)}
+                    onCheckedChange={() => handleCheckboxChange('experienceRequired', option)}
                     className="text-purple-600 rounded-md data-[state=checked]:bg-purple-600"
                   />
                   <Label 

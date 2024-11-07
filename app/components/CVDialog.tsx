@@ -1,13 +1,16 @@
-import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+// CVDialog.tsx
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { auth, db } from '../firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { Loader2, Lock, ExternalLink } from 'lucide-react';
-import Image from 'next/image'
+import Image from 'next/image';
+import { API_ENDPOINTS } from '../config/api';
+import { Job } from '../type'; // Se till att importera från 'type'
 
 interface CVDialogProps {
   isOpen: boolean;
@@ -118,7 +121,7 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle, on
 
     const cvData = {
       ...userData,
-      Jobbtitel: jobTitle,
+      jobTitle: jobTitle, // Ändrat från Jobbtitel
       jobDescription: jobDescription,
       template: selectedTemplate,
     };
@@ -126,7 +129,7 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle, on
     console.log('Data som skickas till backend:', JSON.stringify(cvData, null, 2));
     
     try {
-      const response = await fetch('https://smidra.com/generate_cv', {
+      const response = await fetch(API_ENDPOINTS.generateCV, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

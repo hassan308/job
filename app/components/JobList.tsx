@@ -1,90 +1,95 @@
-import { useState, useCallback } from 'react'
-import JobCard from './JobCard'
-import Pagination from './Pagination'
-import FilterMenu from './FilterMenu'
-import { Button } from "@/components/ui/button"
-import { Filter } from 'lucide-react'
-import { Job } from '../types'
-import CVDialog from './CVDialog'
-import { motion } from 'framer-motion'
+// joblist.tsx
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import JobCard from './JobCard';
+import Pagination from './Pagination';
+import FilterMenu from './FilterMenu';
+import { Button } from "@/components/ui/button";
+import { Filter } from 'lucide-react';
+import { Job, FilterState } from '../type'; // Uppdaterad import
+import CVDialog from './CVDialog';
+import { motion } from 'framer-motion';
 
 interface JobListProps {
   jobs: Job[];
   onCreateCV: (job: Job) => void;
   onCreateCoverLetter: (job: Job) => void;
-  searchKeyword: string;
 }
 
-interface FilterState {
-  employmentTypes: string[];
-  municipalities: string[];
-  experience_required: string[];
-}
-
-export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchKeyword }: JobListProps) {
-  const [currentPage, setCurrentPage] = useState(1)
-  const [showFilterMenu, setShowFilterMenu] = useState(false)
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>(jobs)
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null)
-  const [isCVDialogOpen, setIsCVDialogOpen] = useState(false)
+export default function JobList({ jobs, onCreateCV, onCreateCoverLetter }: JobListProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [isCVDialogOpen, setIsCVDialogOpen] = useState(false);
   const [activeFilters, setActiveFilters] = useState<FilterState>({
     employmentTypes: [],
     municipalities: [],
-    experience_required: [],
+    experienceRequired: [],
   });
 
-  const jobsPerPage = 10
-  const indexOfLastJob = currentPage * jobsPerPage
-  const indexOfFirstJob = indexOfLastJob - jobsPerPage
-  const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob)
-  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage)
+  const jobsPerPage = 10;
 
-  const handleFilterChange = useCallback((filters: FilterState) => {
-    setActiveFilters(filters);
-    const newFilteredJobs = jobs.filter(job => {
-      console.log('Job Details:', {
-        title: job.title,
-        work_experiences: job.work_experiences,
-        employment_type: job.employment_type,
-        workplace: job.workplace,
-      });
-
-      if (filters.employmentTypes.length > 0 && !filters.employmentTypes.includes(job.employment_type)) {
+  // Använd useMemo för att beräkna filteredJobs baserat på jobs och activeFilters
+  const filteredJobs = useMemo(() => {
+    return jobs.filter(job => {
+      // Filtrera efter Anställningstyp
+      if (activeFilters.employmentTypes.length > 0 && !activeFilters.employmentTypes.includes(job.employmentType)) {
         return false;
       }
 
-      if (filters.municipalities.length > 0 && !filters.municipalities.includes(job.workplace?.municipality)) {
+      // Filtrera efter Kommun
+      if (activeFilters.municipalities.length > 0 && !activeFilters.municipalities.includes(job.workplace.municipality)) {
         return false;
       }
 
-      if (filters.experience_required.length > 0) {
-        const hasRequiredExperience = job.work_experiences?.some(exp => exp.required === false);
-        const jobExperience = hasRequiredExperience ? 'Nej' : 'Ja';
-        
-        if (!filters.experience_required.includes(jobExperience)) {
+      // Filtrera efter Erfarenhet
+      if (activeFilters.experienceRequired.length > 0) {
+        const jobExperience = job.requiresExperience ? 'Ja' : 'Nej';
+        if (!activeFilters.experienceRequired.includes(jobExperience)) {
           return false;
         }
       }
 
       return true;
     });
-    setFilteredJobs(newFilteredJobs);
-    setCurrentPage(1);
-  }, [jobs]);
+  }, [jobs, activeFilters]);
+
+  const indexOfLastJob = currentPage * jobsPerPage;
+  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
+  const currentJobs = useMemo(() => {
+    return filteredJobs.slice(indexOfFirstJob, indexOfLastJob);
+  }, [filteredJobs, indexOfFirstJob, indexOfLastJob]);
+
+  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+
+  const handleFilterChange = useCallback((filters: FilterState) => {
+    setActiveFilters(filters);
+    setCurrentPage(1); // Återställ till första sidan när filter ändras
+  }, []);
 
   const handleCreateCV = (job: Job) => {
     setSelectedJob(job);
     setIsCVDialogOpen(true);
   };
 
-  const handleCreateCoverLetter = () => {
+  const handleCreateCoverLetter = (job: Job) => {
+    setSelectedJob(job);
     // Implementera logik för att skapa personligt brev här
-  }
+  };
 
   const handleLoginRequired = () => {
     setIsCVDialogOpen(false);
     // Här kan du lägga till logik för att visa login dialog
   };
+
+  // Återställ filtreringen när jobs ändras (t.ex. vid ny sökning)
+  useEffect(() => {
+    setActiveFilters({
+      employmentTypes: [],
+      municipalities: [],
+      experienceRequired: [],
+    });
+    setCurrentPage(1);
+  }, [jobs]);
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8">
@@ -134,14 +139,18 @@ export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchK
           onClose={() => setShowFilterMenu(false)}
         />
       )}
-      {currentJobs.map((job: Job) => (
-        <JobCard 
-          key={job.id} 
-          job={job} 
-          onCreateCV={() => onCreateCV(job)}
-          onCreateCoverLetter={handleCreateCoverLetter}
-        />
-      ))}
+      {currentJobs.length > 0 ? (
+        currentJobs.map((job: Job) => (
+          <JobCard 
+            key={job.id} 
+            job={job} 
+            onCreateCV={() => onCreateCV(job)}
+            onCreateCoverLetter={() => onCreateCoverLetter(job)}
+          />
+        ))
+      ) : (
+        <div className="text-center text-gray-500">Inga jobb matchar dina filter.</div>
+      )}
       <Pagination 
         currentPage={currentPage} 
         totalPages={totalPages} 
@@ -157,5 +166,5 @@ export default function JobList({ jobs, onCreateCV, onCreateCoverLetter, searchK
         />
       )}
     </div>
-  )
+  );
 }
