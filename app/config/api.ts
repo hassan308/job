@@ -1,6 +1,6 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://smidra.com';
 
 export const API_ENDPOINTS = {
-  search: `${API_BASE_URL}/search`,
-  generateCV: `${API_BASE_URL}/generate_cv`
+  search: `${API_URL}/search`,
+  generateCV: `${API_URL}/generate_cv`
 }; 

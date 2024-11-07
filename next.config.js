@@ -14,7 +14,8 @@ const nextConfig = {
   images: {
     domains: [
       'www.arbetsformedlingen.se',
-      'arbetsformedlingen.se'
+      'arbetsformedlingen.se',
+      'smidra.com'
     ],
     remotePatterns: [
       {
@@ -22,6 +23,14 @@ const nextConfig = {
         hostname: '*.arbetsformedlingen.se',
       },
     ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://smidra.com/:path*',
+      },
+    ];
   },
 }
 
