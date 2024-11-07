@@ -12,7 +12,16 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: {
-    domains: ['your-image-domains.com'], // Lägg till domäner för dina bilder
+    domains: [
+      'www.arbetsformedlingen.se',
+      'arbetsformedlingen.se'
+    ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.arbetsformedlingen.se',
+      },
+    ],
   },
 }
 

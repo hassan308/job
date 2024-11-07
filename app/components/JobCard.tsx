@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Job } from '../types';
 import { FastAverageColor } from 'fast-average-color';
-import Image from 'next/image';
+import NextImage from 'next/image';
 
 interface JobCardProps {
   job: Job;
@@ -40,7 +40,7 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter, searchKe
   useEffect(() => {
     if (job.logotype) {
       const fac = new FastAverageColor();
-      const img = new Image();
+      const img = new window.Image();
       img.crossOrigin = 'Anonymous';
       img.src = job.logotype;
       
@@ -114,7 +114,7 @@ export default function JobCard({ job, onCreateCV, onCreateCoverLetter, searchKe
           <div className="p-4 sm:p-6 border-b border-gray-100">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               {job.logotype ? (
-                <Image 
+                <NextImage 
                   src={job.logotype} 
                   alt={job.company.name} 
                   width={64}
