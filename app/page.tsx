@@ -47,7 +47,7 @@ export default function JobSearch() {
     setSearchKeyword(searchTerm);
 
     try {
-      const response = await fetch('http://localhost:8080/search', {
+      const response = await fetch('https://smidra.com/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

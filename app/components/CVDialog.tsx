@@ -126,7 +126,7 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle, on
     console.log('Data som skickas till backend:', JSON.stringify(cvData, null, 2));
     
     try {
-      const response = await fetch('http://localhost:8080/generate_cv', {
+      const response = await fetch('https://smidra.com/generate_cv', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
