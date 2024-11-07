@@ -7,10 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { auth, db } from '../firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
-import { Loader2, Lock, ExternalLink } from 'lucide-react';
+import { Loader2, Lock, ExternalLink, FileText } from 'lucide-react';
 import Image from 'next/image';
 import { API_ENDPOINTS } from '../config/api';
-import { Job } from '../type'; // Se till att importera från 'type'
 
 interface CVDialogProps {
   isOpen: boolean;
@@ -185,112 +184,152 @@ export default function CVDialog({ isOpen, onClose, jobDescription, jobTitle, on
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[700px] bg-white rounded-xl shadow-lg overflow-y-auto max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="text-3xl font-bold text-blue-700">Skapa CV för {jobTitle}</DialogTitle>
-          <DialogDescription className="text-lg text-blue-500 mt-2">
+        <DialogHeader className="border-b border-gray-100 pb-6">
+          <DialogTitle className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+            <FileText className="w-6 h-6 text-blue-600" />
+            Skapa CV för {jobTitle}
+          </DialogTitle>
+          <DialogDescription className="text-base text-gray-500 mt-1">
             Verifiera din information och välj en mall för ditt CV.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+
+        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+          {/* Personlig information */}
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="displayName">Namn</Label>
-              <Input id="displayName" name="displayName" value={userData.displayName} onChange={handleInputChange} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="displayName" className="text-sm text-gray-600 font-medium">Namn</Label>
+                <Input 
+                  id="displayName" 
+                  name="displayName" 
+                  value={userData.displayName} 
+                  onChange={handleInputChange}
+                  className="mt-1 border border-gray-300"
+                />
+              </div>
+              <div>
+                <Label htmlFor="email" className="text-sm text-gray-600 font-medium">E-post</Label>
+                <Input 
+                  id="email" 
+                  name="email" 
+                  value={userData.email} 
+                  onChange={handleInputChange} 
+                  readOnly 
+                  className="mt-1 border border-gray-300"
+                />
+              </div>
+              <div>
+                <Label htmlFor="phone" className="text-sm text-gray-600 font-medium">Telefon</Label>
+                <Input 
+                  id="phone" 
+                  name="phone" 
+                  value={userData.phone} 
+                  onChange={handleInputChange}
+                  className="mt-1 border border-gray-300"
+                />
+              </div>
+              <div>
+                <Label htmlFor="location" className="text-sm text-gray-600 font-medium">Plats</Label>
+                <Input 
+                  id="location" 
+                  name="location" 
+                  value={userData.location} 
+                  onChange={handleInputChange}
+                  className="mt-1 border border-gray-300"
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="email">E-post</Label>
-              <Input id="email" name="email" value={userData.email} onChange={handleInputChange} readOnly />
-            </div>
-            <div>
-              <Label htmlFor="phone">Telefon</Label>
-              <Input id="phone" name="phone" value={userData.phone} onChange={handleInputChange} />
-            </div>
-            <div>
-              <Label htmlFor="location">Plats</Label>
-              <Input id="location" name="location" value={userData.location} onChange={handleInputChange} />
-            </div>
-            <div>
-              <Label htmlFor="bio">Sammanfattning</Label>
-              <Textarea id="bio" name="bio" value={userData.bio} onChange={handleInputChange} rows={3} />
-            </div>
-            <div>
-              <Label htmlFor="skills">Färdigheter</Label>
-              <Textarea id="skills" name="skills" value={userData.skills} onChange={handleInputChange} rows={3} />
-            </div>
-            <div>
-              <Label htmlFor="experience">Arbetslivserfarenhet</Label>
-              <Textarea id="experience" name="experience" value={userData.experience} onChange={handleInputChange} rows={4} />
-            </div>
-            <div>
-              <Label htmlFor="education">Utbildning</Label>
-              <Textarea id="education" name="education" value={userData.education} onChange={handleInputChange} rows={3} />
-            </div>
-            <div>
-              <Label htmlFor="certifications">Certifieringar</Label>
-              <Textarea id="certifications" name="certifications" value={userData.certifications} onChange={handleInputChange} rows={3} />
+
+            {/* Textfält */}
+            <div className="space-y-4 pt-2">
+              {[
+                { id: 'bio', label: 'Sammanfattning', rows: 3 },
+                { id: 'skills', label: 'Färdigheter', rows: 3 },
+                { id: 'experience', label: 'Arbetslivserfarenhet', rows: 4 },
+                { id: 'education', label: 'Utbildning', rows: 3 },
+                { id: 'certifications', label: 'Certifieringar', rows: 3 }
+              ].map((field) => (
+                <div key={field.id}>
+                  <Label htmlFor={field.id} className="text-sm text-gray-600 font-medium">{field.label}</Label>
+                  <Textarea 
+                    id={field.id} 
+                    name={field.id} 
+                    value={userData[field.id as keyof typeof userData] as string} 
+                    onChange={handleInputChange} 
+                    rows={field.rows}
+                    className="mt-1 border border-gray-300 w-full"
+                  />
+                </div>
+              ))}
             </div>
           </div>
-          
-          <div className="space-y-4">
-            <Label className="text-lg font-semibold">Välj CV Mall</Label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            
+          {/* CV Mallar */}
+          <div className="pt-4 border-t border-gray-100">
+            <Label className="text-sm text-gray-600 block mb-3">Välj CV Mall</Label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {cvTemplates.map((template) => (
                 <div 
                   key={template.id}
-                  className={`relative cursor-pointer transition-all duration-300 transform hover:scale-105 ${
-                    selectedTemplate === template.id ? 'ring-4 ring-blue-500 rounded-lg shadow-lg' : 'hover:shadow-md'
-                  } ${!template.free ? 'opacity-50' : ''}`}
+                  className={`relative cursor-pointer rounded-lg overflow-hidden ${
+                    selectedTemplate === template.id 
+                      ? 'ring-2 ring-blue-500' 
+                      : 'hover:ring-2 hover:ring-gray-200'
+                  } ${!template.free ? 'opacity-75' : ''}`}
                   onClick={() => template.free && setSelectedTemplate(template.id)}
                 >
-                  <div className="relative w-full aspect-[3/4] overflow-hidden rounded-lg">
-                    <Image
-                      src={template.image}
-                      alt={template.name}
-                      layout="fill"
-                      objectFit="cover"
-                      className="transition-transform duration-300 transform hover:scale-110"
-                    />
-                    {!template.free && (
-                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <Lock className="text-white w-8 h-8" />
-                      </div>
-                    )}
-                  </div>
-                  <p className="mt-2 text-center font-medium text-blue-600">{template.name}</p>
+                  <Image
+                    src={template.image}
+                    alt={template.name}
+                    width={200}
+                    height={280}
+                    className="w-full h-auto"
+                  />
                   {!template.free && (
-                    <span className="absolute top-2 right-2 bg-yellow-400 text-xs font-bold px-2 py-1 rounded-full">PRO</span>
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-900/20">
+                      <Lock className="text-white w-6 h-6" />
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-700 text-center mt-1">{template.name}</p>
+                  {!template.free && (
+                    <span className="absolute top-2 right-2 bg-blue-500 text-xs font-medium px-1.5 py-0.5 rounded text-white">
+                      PRO
+                    </span>
                   )}
                 </div>
               ))}
             </div>
           </div>
-          
-          {!generatedCVUrl ? (
-            <Button 
-              type="submit" 
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition duration-300"
-              disabled={isLoading}
-              onClick={handleSubmit}  // Generera CV endast när "Skapa CV" klickas
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Genererar CV...
-                </>
-              ) : (
-                'Skapa CV'
-              )}
-            </Button>
-          ) : (
-            <Button 
-              type="button"  // Ändra till type="button" för att förhindra form submission
-              onClick={openGeneratedCV}  // Använd openGeneratedCV istället för handleSubmit
-              className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition duration-300"
-            >
-              <ExternalLink className="mr-2 h-4 w-4" />
-              Öppna genererat CV
-            </Button>
-          )}
+            
+          {/* Knappar */}
+          <div className="pt-4 border-t border-gray-100">
+            {!generatedCVUrl ? (
+              <Button 
+                type="submit" 
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Genererar CV...
+                  </>
+                ) : (
+                  'Skapa CV'
+                )}
+              </Button>
+            ) : (
+              <Button 
+                type="button"
+                onClick={openGeneratedCV}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Öppna genererat CV
+              </Button>
+            )}
+          </div>
         </form>
       </DialogContent>
     </Dialog>

@@ -1,8 +1,24 @@
 // JobCard.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { FileText, Send, ChevronDown, ChevronUp } from 'lucide-react';
-import { Job } from '../type'; // Se till att importera från 'type' istället för 'types'
+import { 
+  FileText, 
+  Send, 
+  ChevronDown, 
+  ChevronUp,
+  Building2,
+  MapPin,
+  Briefcase,
+  Users,
+  Target,
+  Clock,
+  Coins,
+  Calendar,
+  Timer,
+  GraduationCap
+} from 'lucide-react';
+import { Job } from '../types';
+import { FastAverageColor } from 'fast-average-color';
 
 interface JobCardProps {
   job: Job;
@@ -11,111 +27,245 @@ interface JobCardProps {
   searchKeyword?: string;
 }
 
+interface CardColors {
+  dominant: string;
+  dominantLight: string;
+}
+
 export default function JobCard({ job, onCreateCV, onCreateCoverLetter, searchKeyword }: JobCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [colors, setColors] = useState<CardColors | null>(null);
+
+  useEffect(() => {
+    if (job.logotype) {
+      const fac = new FastAverageColor();
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.src = job.logotype;
+      
+      img.onload = async () => {
+        try {
+          const color = await fac.getColorAsync(img);
+          const dominantColor = color.hex;
+          
+          setColors({
+            dominant: dominantColor,
+            dominantLight: `${dominantColor}15`
+          });
+        } catch (error) {
+          console.error('Kunde inte extrahera färger:', error);
+          setColors({
+            dominant: '#4F46E5',
+            dominantLight: '#4F46E515'
+          });
+        }
+      };
+
+      img.onerror = () => {
+        console.error('Kunde inte ladda logotypen');
+        setColors({
+          dominant: '#4F46E5',
+          dominantLight: '#4F46E515'
+        });
+      };
+
+      return () => {
+        fac.destroy();
+      };
+    }
+  }, [job.logotype]);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('sv-SE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-100">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-4">
-            {job.company.logotype ? (
-              <img 
-                src={job.company.logotype} 
-                alt={job.company.name} 
-                className="w-12 h-12 object-contain rounded-lg"
-              />
-            ) : (
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">🏢</span>
+    <div className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 overflow-hidden">
+      {/* Hörnfärger från logotypen */}
+      {colors && (
+        <>
+          {/* Top gradient covering entire top area */}
+          <div 
+            className="absolute top-0 left-0 w-full h-72 opacity-90 blur-md"
+            style={{
+              background: `linear-gradient(to bottom, 
+                ${colors.dominant}, 
+                ${colors.dominant} 10%,
+                ${colors.dominant} 20%,
+                ${colors.dominant}90 40%,
+                ${colors.dominant}60 60%,
+                ${colors.dominant}20 80%,
+                transparent 100%)`
+            }}
+          />
+        </>
+      )}
+
+      {/* Vit mittsektion */}
+      <div className="relative">
+        {/* Innehåll med solid bakgrund för skarp text */}
+        <div className="relative bg-white/80">
+          {/* Header Section */}
+          <div className="p-4 sm:p-6 border-b border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              {job.logotype ? (
+                <img 
+                  src={job.logotype} 
+                  alt={job.company.name} 
+                  className="w-12 h-12 sm:w-16 sm:h-16 object-contain rounded-xl bg-white p-2"
+                />
+              ) : (
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl flex items-center justify-center">
+                  <span className="text-xl sm:text-2xl">🏢</span>
+                </div>
+              )}
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1">{job.title}</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-sm text-gray-600">
+                  <span className="flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-gray-400" />
+                    {job.company.name}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-gray-400" />
+                    {job.workplace.municipality}
+                  </span>
+                </div>
               </div>
-            )}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">{job.title}</h3>
-              <p className="text-sm text-gray-600">{job.company.name}</p>
             </div>
           </div>
 
-          <div className="space-y-2 mb-4">
-            <p className="text-sm text-gray-600">
-              <span>📍</span> {job.workplace.municipality}
-            </p>
-            <p className="text-sm text-gray-600">
-              <span>💼</span> {job.employmentType}
-            </p>
-            <p className="text-sm text-gray-600">
-              <span>👥</span> {job.positions} tjänst{job.positions !== 1 && 'er'}
-            </p>
-            <p className="text-sm text-gray-600">
-              <span>🎯</span> Erfarenhet: {job.requiresExperience ? 'Krävs' : 'Krävs ej'}
-            </p>
-            {job.salaryType && (
-              <p className="text-sm text-gray-600">
-                <span>💰</span> {job.salaryType}
-              </p>
-            )}
-            {job.lastApplicationDate && (
-              <p className="text-sm text-gray-600">
-                <span>📅</span> Sök senast: {new Date(job.lastApplicationDate).toLocaleDateString('sv-SE')}
-              </p>
-            )}
-          </div>
-          
-          <div className="prose prose-sm max-w-none text-gray-600 mb-4">
-            {isExpanded ? (
-              <div dangerouslySetInnerHTML={{ __html: job.description }} />
-            ) : (
-              <>
-                <div dangerouslySetInnerHTML={{ __html: job.description.slice(0, 300) + '...' }} />
+          {/* Innehåll */}
+          <div className="p-4 sm:p-6">
+            {/* Grid med information */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <div className="space-y-4">
+                <div className="bg-white shadow-sm border border-gray-100 p-3 rounded-lg">
+                  <div className="text-xs text-gray-500 mb-1 font-medium">Anställningsform</div>
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <Briefcase className="w-4 h-4 text-blue-600" />
+                    {job.employmentType}
+                  </div>
+                </div>
+
+                <div className="bg-white shadow-sm border border-gray-100 p-3 rounded-lg">
+                  <div className="text-xs text-gray-500 mb-1 font-medium">Antal tjänster</div>
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <Users className="w-4 h-4 text-blue-600" />
+                    {job.positions} st
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-white shadow-sm border border-gray-100 p-3 rounded-lg">
+                  <div className="text-xs text-gray-500 mb-1 font-medium">Erfarenhetskrav</div>
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <GraduationCap className="w-4 h-4 text-blue-600" />
+                    {job.requiresExperience ? 'Krävs' : 'Krävs ej'}
+                  </div>
+                </div>
+
+                {job.duration && (
+                  <div className="bg-white shadow-sm border border-gray-100 p-3 rounded-lg">
+                    <div className="text-xs text-gray-500 mb-1 font-medium">Varaktighet</div>
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                      <Clock className="w-4 h-4 text-blue-600" />
+                      {job.duration}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Badges */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {job.salaryType && (
+                <div className="bg-white shadow-sm border border-gray-100 px-3 py-1.5 rounded-full flex items-center gap-2">
+                  <Coins className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-medium text-gray-700">{job.salaryType}</span>
+                </div>
+              )}
+              <div className="bg-white shadow-sm border border-gray-100 px-3 py-1.5 rounded-full flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-medium text-gray-700">Publicerad: {formatDate(job.publishedDate)}</span>
+              </div>
+              {job.lastApplicationDate && (
+                <div className="bg-red-50 border border-red-100 px-3 py-1.5 rounded-full flex items-center gap-2">
+                  <Timer className="w-4 h-4 text-red-600" />
+                  <span className="text-sm font-medium text-red-700">Sök senast: {formatDate(job.lastApplicationDate)}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Beskrivning */}
+            <div className="prose prose-sm max-w-none text-gray-600 bg-white shadow-sm border border-gray-100 p-3 sm:p-4 rounded-xl mb-6">
+              {isExpanded ? (
+                <div dangerouslySetInnerHTML={{ __html: job.description }} />
+              ) : (
+                <>
+                  <div dangerouslySetInnerHTML={{ __html: job.description.slice(0, 300) + '...' }} />
+                  <button
+                    onClick={() => setIsExpanded(true)}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-2 flex items-center gap-1"
+                  >
+                    Visa mer <ChevronDown className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+              {isExpanded && (
                 <button
-                  onClick={() => setIsExpanded(true)}
+                  onClick={() => setIsExpanded(false)}
                   className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-2 flex items-center gap-1"
                 >
-                  Visa mer <ChevronDown className="w-4 h-4" />
+                  Visa mindre <ChevronUp className="w-4 h-4" />
                 </button>
-              </>
-            )}
-            {isExpanded && (
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-2 flex items-center gap-1"
-              >
-                Visa mindre <ChevronUp className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {job.contacts && job.contacts.length > 0 && (
-            <div className="mt-4 p-4 bg-blue-50/50 rounded-lg">
-              <h4 className="text-sm font-semibold text-gray-900 mb-2">📞 Kontaktpersoner</h4>
-              {job.contacts.map((contact, index) => (
-                <div key={index} className="text-sm text-gray-600">
-                  <p>{contact.description}</p>
-                  {contact.phoneNumber && <p>☎️ {contact.phoneNumber}</p>}
-                  {contact.email && <p>✉️ {contact.email}</p>}
-                </div>
-              ))}
+              )}
             </div>
-          )}
-        </div>
-      </div>
 
-      <div className="flex gap-3 mt-6">
-        <Button
-          onClick={() => onCreateCV(job)}
-          className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm"
-        >
-          <FileText className="w-4 h-4 mr-2" />
-          Skapa CV
-        </Button>
-        <Button
-          onClick={() => onCreateCoverLetter(job)}
-          className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm"
-        >
-          <Send className="w-4 h-4 mr-2" />
-          Personligt brev
-        </Button>
+            {/* Kontaktpersoner */}
+            {job.contacts && job.contacts.length > 0 && (
+              <div className="bg-white shadow-sm border border-gray-100 p-3 sm:p-4 rounded-xl mb-6">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                  📞 Kontaktpersoner
+                </h4>
+                <div className="space-y-3">
+                  {job.contacts.map((contact, index) => (
+                    <div key={index} className="text-sm">
+                      <p className="font-medium text-gray-900">{contact.description}</p>
+                      {contact.phoneNumber && <p className="text-gray-600">☎️ {contact.phoneNumber}</p>}
+                      {contact.email && <p className="text-gray-600">✉️ {contact.email}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Knappar */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={() => onCreateCV(job)}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-shadow"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Skapa CV
+              </Button>
+              <Button
+                onClick={() => onCreateCoverLetter(job)}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-shadow"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Personligt brev
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
